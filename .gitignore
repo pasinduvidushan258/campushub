@@ -1,0 +1,4 @@
+/config/database.php
+/assets/uploads/
+.DS_Store
+Thumbs.db
