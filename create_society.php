@@ -2,6 +2,15 @@
 session_start();
 require 'config/database.php';
 
+// PHPMailer classes
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Include required PHPMailer files without Composer
+require 'includes/PHPMailer/Exception.php';
+require 'includes/PHPMailer/PHPMailer.php';
+require 'includes/PHPMailer/SMTP.php';
+
 // Redirect unauthenticated users to the login page before any further processing
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -41,17 +50,66 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if ($stmt->execute([$_SESSION['user_id'], $name, $desc, $email1, $email2, $verify_token])) {
             
-            // =========================================================
-            // TODO: Send verification emails via PHPMailer to both
-            //       provided addresses using the token link below.
-            //       Email dispatch is stubbed out for now.
-            // =========================================================
             $verification_link = "http://localhost/campusHub/verify_society.php?token=" . $verify_token;
 
-            $success = "Society created! Verification links have been sent to the provided emails.";
+            // =========================================================
+            // send verification emails to both provided email addresses using PHPMailer
+            // =========================================================
+            
+            //read SMTP credentials from .env file for better security and separation of configuration
+            $env = parse_ini_file(__DIR__ . '/.env');
 
-            // Redirect to the home feed after a 4-second confirmation delay
-            echo "<script>setTimeout(() => { window.location.href = 'index.php'; }, 4000);</script>";
+            // Create a new PHPMailer instance and configure SMTP settings
+            $mail = new PHPMailer(true);
+
+            try {
+                // Server settings
+                $mail->isSMTP();
+                $mail->Host       = 'smtp.gmail.com';
+                $mail->SMTPAuth   = true;
+                
+                // Gmail & App Passwords
+                $mail->Username   = $env['SMTP_EMAIL'];
+                $mail->Password   = $env['SMTP_APP_PASSWORD'];
+
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Port       = 587;
+
+                // Recipients
+                $mail->setFrom($env['SMTP_EMAIL'], 'CampusHub System'); 
+                $mail->addAddress($email1); // Senior Treasurer
+                $mail->addAddress($email2); // Secretary
+
+                // Email Content
+                $mail->isHTML(true);
+                $mail->Subject = 'Action Required: Verify New Society - CampusHub';
+                
+                // Display the verification link as a styled button in the email body for better user experience
+                $mail->Body    = "
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>
+                        <h2 style='color: #F97316; text-align: center;'>CampusHub Society Verification</h2>
+                        <p>Hello,</p>
+                        <p>A new society named <b>{$name}</b> has been registered on CampusHub and requires your verification.</p>
+                        <p>As an executive member, please click the button below to verify and approve the creation of this society:</p>
+                        <div style='text-align: center; margin: 30px 0;'>
+                            <a href='{$verification_link}' style='background-color: #F97316; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Verify & Approve Society</a>
+                        </div>
+                        <p style='color: #666; font-size: 0.9em;'>If the button doesn't work, copy and paste this link into your browser:<br> <a href='{$verification_link}'>{$verification_link}</a></p>
+                        <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                        <p style='font-size: 0.8em; color: #999; text-align: center;'>If you did not request this, please ignore this email.</p>
+                    </div>
+                ";
+
+                $mail->send();
+
+                $success = "Society created! Verification links have been sent to the provided emails.";
+
+                // Redirect to the home feed after a 4-second confirmation delay
+                echo "<script>setTimeout(() => { window.location.href = 'index.php'; }, 4000);</script>";
+
+            } catch (Exception $e) {
+                $error = "Society created in database, but failed to send verification emails. Mailer Error: {$mail->ErrorInfo}";
+            }
 
         } else {
             $error = "Failed to create society.";
@@ -71,42 +129,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <p>Register your society. It requires verification from two other members (e.g., Senior Treasurer & Secretary).</p>
         </div>
 
-        <!-- Inline validation feedback — displayed conditionally based on server-side result -->
         <?php if($error): ?><div style="color: #ef4444; text-align:center; margin-bottom:15px; font-weight: 500;"><?php echo $error; ?></div><?php endif; ?>
         <?php if($success): ?><div style="color: #23a55a; text-align:center; margin-bottom:15px; font-weight: 500;"><?php echo $success; ?></div><?php endif; ?>
 
         <form action="create_society.php" method="POST" class="auth-form">
             
-            <!-- Society name input -->
             <div class="input-group">
                 <input type="text" name="society_name" placeholder="Society Name" required 
                        style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #18191a; color: white;">
             </div>
             
-            <!-- Brief society description -->
             <div class="input-group" style="margin-top: 15px;">
                 <textarea name="description" placeholder="Short description about your society..." required 
                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #18191a; color: white; min-height: 100px; font-family: inherit;"></textarea>
             </div>
 
-            <!-- Verification email section — requires two authorised university email addresses -->
             <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
                 <label style="color: #b0b3b8; font-size: 0.85rem; margin-bottom: 8px; display: block;">Verification Emails (Require 2)</label>
                 
-                <!-- Primary verifier email (e.g. Senior Treasurer) -->
                 <div class="input-group" style="margin-bottom: 10px;">
                     <input type="email" name="email_1" placeholder="Email Address 1 (e.g. Senior Treasurer)" required 
                            style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #18191a; color: white;">
                 </div>
                 
-                <!-- Secondary verifier email (e.g. Secretary) -->
                 <div class="input-group">
                     <input type="email" name="email_2" placeholder="Email Address 2 (e.g. Secretary)" required 
                            style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #18191a; color: white;">
                 </div>
             </div>
 
-            <!-- Submit button — triggers server-side validation and society registration -->
             <button type="submit" class="btn-auth" style="width: 100%; margin-top: 25px; background: #F97316; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s;">
                 Register Society
             </button>

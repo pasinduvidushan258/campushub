@@ -67,6 +67,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $insert_stmt = $pdo->prepare("INSERT INTO users (fullname, university, category, student_number, email, password, otp) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 $insert_stmt->execute([$fullname, $university, $category, $student_number, $email, $hashed_password, $otp]);
 
+                //read SMTP credentials from .env file for better security and separation of configuration
+                $env = parse_ini_file(__DIR__ . '/.env');
+
                 // --- Send OTP verification email via PHPMailer + Gmail SMTP ---
                 $mail = new PHPMailer(true); // Passing true enables exceptions on error.
 
@@ -75,13 +78,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $mail->isSMTP();
                     $mail->Host       = 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
-                    $mail->Username   = 'pramodya954@gmail.com'; // Gmail address used as the sender.
-                    $mail->Password   = 'rqmuevyyahcagcgk';      // 16-character Gmail App Password (not the account password).
+                    $mail->Username   = $env['SMTP_EMAIL'];
+                    $mail->Password   = $env['SMTP_APP_PASSWORD'];
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                     $mail->Port       = 465;
 
                     // Set the sender name shown in the recipient's inbox and the destination address.
-                    $mail->setFrom('pramodya954@gmail.com', 'CampusHub Security');
+                    $mail->setFrom($env['SMTP_EMAIL'], 'CampusHub Security');
                     $mail->addAddress($email, $fullname);
 
                     // Build the HTML email body with the OTP displayed prominently.
