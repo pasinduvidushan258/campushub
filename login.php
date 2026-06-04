@@ -99,7 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <i class="fas fa-lock input-icon"></i>
                 <input type="password" name="password" id="password" placeholder="Password" required>
                 <!-- Eye icon toggles password visibility — wired up by the JS block below. -->
-                <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                <i class="fas fa-eye-slash toggle-password" id="togglePassword"></i>
             </div>
 
             <div class="auth-options">
@@ -117,23 +117,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </main>
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const togglePassword = document.getElementById('togglePassword');
-    const password       = document.getElementById('password');
-
-    // Wire the eye icon to toggle the password field between visible and hidden.
-    // The null check guards against errors if either element is missing from the DOM.
-    if (togglePassword && password) {
-        togglePassword.addEventListener('click', function() {
-            // Switch between type="password" (hidden) and type="text" (visible).
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
-            // Swap the icon between open-eye and slashed-eye to reflect the current state.
-            this.classList.toggle('fa-eye-slash');
-        });
-    }
-});
-</script>
+<script src="assets/js/auth.js"></script>
 
 <?php include 'includes/footer.php'; ?>

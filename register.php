@@ -186,8 +186,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <i class="fas fa-users-cog input-icon"></i>
                 <select name="category" id="userCategory" required class="custom-select">
                     <option value="" disabled selected>Select Category</option>
-                    <option value="student">1. Student</option>
-                    <option value="lecturer">2. Lecturer</option>
+                    <option value="student">Student</option>
+                    <option value="lecturer">Lecturer</option>
                 </select>
             </div>
 
@@ -215,13 +215,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <i class="fas fa-lock input-icon"></i>
                 <input type="password" name="password" id="regPassword" placeholder="Create Password" required>
                 <!-- Eye icon toggles password visibility — handled by setupPasswordToggle() below. -->
-                <i class="fas fa-eye toggle-password" id="toggleRegPassword"></i>
+                <i class="fas fa-eye-slash toggle-password" id="toggleRegPassword"></i>
             </div>
 
             <div class="input-group">
                 <i class="fas fa-lock input-icon"></i>
                 <input type="password" name="confirm_password" id="regConfirmPassword" placeholder="Confirm Password" required>
-                <i class="fas fa-eye toggle-password" id="toggleRegConfirmPassword"></i>
+                <i class="fas fa-eye-slash toggle-password" id="toggleRegConfirmPassword"></i>
             </div>
 
             <!-- Client-side error messages are injected here by the JS submit handler. -->
@@ -234,81 +234,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </main>
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-
-    const categorySelect   = document.getElementById('userCategory');
-    const studentSection   = document.getElementById('studentSection');
-    const lecturerSection  = document.getElementById('lecturerSection');
-
-    // Show or hide the student/lecturer input sections based on the selected category.
-    // Both sections are hidden first to reset state before revealing the correct one.
-    categorySelect.addEventListener('change', function() {
-        studentSection.style.display  = 'none';
-        lecturerSection.style.display = 'none';
-
-        if (this.value === 'student')  studentSection.style.display  = 'block';
-        if (this.value === 'lecturer') lecturerSection.style.display = 'block';
-    });
-
-    // Reusable helper that wires a show/hide toggle button to its password input field.
-    // Clicking the eye icon switches the input between type="password" and type="text".
-    function setupPasswordToggle(toggleId, inputId) {
-        const toggleBtn  = document.getElementById(toggleId);
-        const inputField = document.getElementById(inputId);
-        if (toggleBtn && inputField) {
-            toggleBtn.addEventListener('click', function() {
-                const type = inputField.getAttribute('type') === 'password' ? 'text' : 'password';
-                inputField.setAttribute('type', type);
-                // Swap the icon between open-eye and slashed-eye to reflect current state.
-                this.classList.toggle('fa-eye-slash');
-            });
-        }
-    }
-    setupPasswordToggle('toggleRegPassword', 'regPassword');
-    setupPasswordToggle('toggleRegConfirmPassword', 'regConfirmPassword');
-
-    const registerForm = document.getElementById('registerForm');
-    const errorBox     = document.getElementById('errorBox');
-
-    // Client-side validation runs on submit — catches obvious errors before hitting the server.
-    // e.preventDefault() stops the form from submitting if validation fails.
-    registerForm.addEventListener('submit', function(e) {
-        errorBox.style.display = 'none';
-        let isValid = true;
-        let errorMessage = "";
-        let emailToCheck = "";
-
-        const activeCategory = categorySelect.value;
-
-        // Pick the correct email input depending on the selected category.
-        if (activeCategory === 'student') {
-            emailToCheck = document.querySelector('input[name="student_email"]').value.trim();
-        } else if (activeCategory === 'lecturer') {
-            emailToCheck = document.querySelector('input[name="lecturer_email"]').value.trim();
-        }
-
-        // Enforce .lk domain restriction on the client side as well.
-        if (emailToCheck === "" || !emailToCheck.endsWith('.lk')) {
-            isValid = false;
-            errorMessage = "Please enter a valid University official email ending with '.lk'";
-        }
-
-        // Confirm that both password fields match before allowing submission.
-        const pwd  = document.getElementById('regPassword').value;
-        const cpwd = document.getElementById('regConfirmPassword').value;
-        if (pwd !== cpwd) {
-            isValid = false;
-            errorMessage = "Passwords do not match!";
-        }
-
-        if (!isValid) {
-            e.preventDefault(); // Block form submission and show the error inline.
-            errorBox.innerText = errorMessage;
-            errorBox.style.display = 'block';
-        }
-    });
-});
-</script>
+<script src="assets/js/auth.js"></script>
 
 <?php include 'includes/footer.php'; ?>

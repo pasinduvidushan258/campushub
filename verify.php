@@ -95,39 +95,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </main>
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    // Select all 6 OTP input boxes.
-    const inputs = document.querySelectorAll('.otp-input');
-    
-    // Immediately focus the first box so the user can start typing without clicking.
-    if(inputs.length > 0) {
-        inputs[0].focus();
-    }
-
-    inputs.forEach((input, index) => {
-
-        input.addEventListener('input', (e) => {
-            // Remove any character that is not a digit (0-9).
-            // This blocks letters, symbols, and spaces before they are stored.
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-            
-            // If a valid digit was entered and this is not the last box,
-            // move focus forward to the next input automatically.
-            if (e.target.value !== '' && index < inputs.length - 1) {
-                inputs[index + 1].focus();
-            }
-        });
-
-        input.addEventListener('keydown', (e) => {
-            // When the user presses Backspace on an already-empty box,
-            // move focus back to the previous box so they can correct it.
-            if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
-                inputs[index - 1].focus();
-            }
-        });
-    });
-});
-</script>
+<script src="assets/js/auth.js"></script>
 
 <?php include 'includes/footer.php'; ?>
