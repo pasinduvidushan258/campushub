@@ -1,0 +1,245 @@
+/* ====================================================
+   PREMIUM AUTHENTICATION PAGES (LOGIN & REGISTER)
+   ==================================================== */
+
+.auth-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 150px); /* Header එකට අමතරව තියෙන ඉඩ */
+    padding: 40px 20px;
+}
+
+.auth-box {
+    background: rgba(20, 18, 16, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 30px;
+    padding: 50px 40px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.auth-header h2 {
+    color: #F8FAFC;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+}
+
+.auth-header p {
+    color: #A8A29E;
+    font-size: 0.95rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Input Fields සැකසුම් */
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group .input-icon {
+    position: absolute;
+    left: 20px;
+    color: #78716C;
+    font-size: 1.1rem;
+    transition: color 0.3s;
+}
+
+.input-group input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    padding: 16px 20px 16px 50px;
+    color: #F8FAFC;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input-group input::placeholder {
+    color: #78716C;
+}
+
+/* Input එක Focus කරද්දි Orange පාටින් Highlight වීම */
+.input-group input:focus {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #F97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+}
+
+.input-group input:focus + .input-icon {
+    color: #F97316;
+}
+
+/* Show Password Toggle Icon */
+.toggle-password {
+    position: absolute;
+    right: 20px;
+    color: #78716C;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.toggle-password:hover {
+    color: #F8FAFC;
+}
+
+/* Remember me & Forgot Password */
+.auth-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    margin-top: -5px;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #A8A29E;
+    cursor: pointer;
+}
+
+.remember-me input {
+    accent-color: #F97316;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.forgot-password {
+    color: #F97316;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.forgot-password:hover {
+    color: #ff8c3a;
+    text-decoration: underline;
+}
+
+/* Glowing Orange Login Button */
+.btn-auth {
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    color: #ffffff;
+    border: none;
+    padding: 16px;
+    border-radius: 15px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(234, 88, 12, 0.5);
+}
+
+/* Footer Switch (Don't have an account?) */
+.auth-footer {
+    text-align: center;
+    margin-top: 30px;
+    color: #A8A29E;
+    font-size: 0.95rem;
+}
+
+.auth-footer a {
+    color: #F97316;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 5px;
+    transition: color 0.3s;
+}
+
+.auth-footer a:hover {
+    color: #ff8c3a;
+    text-decoration: underline;
+}
+
+/* Mobile Responsiveness for Auth Box */
+@media (max-width: 560px) {
+    .auth-box {
+        padding: 40px 25px;
+        border-radius: 24px;
+    }
+    .auth-header h2 { font-size: 1.7rem; }
+    .auth-options { flex-direction: column; gap: 15px; align-items: flex-start; }
+}
+
+
+.custom-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    padding: 16px 20px 16px 50px;
+    color: #A8A29E;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    appearance: none; /* Default ඊතලය අයින් කරන්න */
+}
+.custom-select:focus {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #F97316;
+}
+.custom-select option {
+    background: #141210;
+    color: #F8FAFC;
+}
+
+
+
+/* ====================================================
+   OTP VERIFICATION BOXES (6 DIGITS)
+   ==================================================== */
+.otp-container {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 30px 0;
+}
+
+.otp-input {
+    width: 50px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #F8FAFC;
+    transition: all 0.3s ease;
+}
+
+.otp-input:focus {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #F97316;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+    transform: translateY(-2px);
+}

@@ -1,0 +1,137 @@
+/* ============================================================
+ * DESC: Hamburger Menu Dropdown Styles
+ *       Mobile nav links, auth buttons, mobile search bar
+ *       (Responsive breakpoints are in header-responsive.css)
+ * ============================================================ */
+
+
+/* -------------------------------------------------------
+ * 1. DROPDOWN WRAPPER
+ *    - Glassmorphism panel that slides down from header
+ *    - Hidden by default; toggled via JS (.active class)
+ * ------------------------------------------------------- */
+.mobile-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 60px);
+    max-width: calc(1400px * 0.95 - 60px);
+    background: rgba(20, 18, 16, 0.95);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    margin-top: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    /* Default state: invisible & shifted up */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%) translateY(-15px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1002;
+}
+
+/* Active state: fully visible, slides into position */
+.mobile-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+
+/* -------------------------------------------------------
+ * 2. MOBILE NAV LINKS
+ *    - Stacked vertically inside the dropdown
+ * ------------------------------------------------------- */
+.mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mobile-nav a {
+    color: #A8A29E;
+    text-decoration: none;
+    padding: 12px 15px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.3s;
+}
+
+/* Hover & active states highlight with amber tint */
+.mobile-nav a:hover,
+.mobile-nav a.active {
+    background: rgba(245, 158, 11, 0.15);
+    color: #F8FAFC;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Active page icon turns amber */
+.mobile-nav a.active i {
+    color: #F59E0B;
+}
+
+
+/* -------------------------------------------------------
+ * 3. MOBILE AUTH BUTTONS (Login / Register)
+ *    - Hidden at 850px+ because desktop header shows them
+ *    - Shown at 560px- via header-responsive.css
+ * ------------------------------------------------------- */
+.mobile-auth {
+    display: none; /* Visibility controlled in header-responsive.css */
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.mobile-auth .btn {
+    text-align: center;
+    width: 100%;
+}
+
+
+/* -------------------------------------------------------
+ * 4. MOBILE SEARCH BAR (Inside Dropdown)
+ *    - Only shown at 560px- when header search is hidden
+ *    - Shown via header-responsive.css
+ * ------------------------------------------------------- */
+.mobile-search {
+    display: none; /* Shown at 560px- in header-responsive.css */
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.mobile-search input {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #F8FAFC;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 40px;
+    padding: 12px 15px 12px 45px;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.mobile-search i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #78716C;
+    transition: color 0.3s;
+}
+
+/* Icon turns amber when input is focused */
+.mobile-search input:focus + i {
+    color: #F59E0B;
+}
