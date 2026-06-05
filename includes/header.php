@@ -71,11 +71,29 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                 <div class="profile-menu-container">
 
                     <?php
-                    // Render a society icon if currently in society mode, otherwise render a user icon
-                    $top_avatar = ($active_mode === 'society')
-                        ? '<i class="fas fa-users"></i>'
-                        : '<i class="fas fa-user"></i>';
+                    require_once 'config/database.php';
+                    
+                    $user_avatar_tag = '<i class="fas fa-user"></i>'; // Default avatar icon if no custom avatar is set
+                    
+                    // Fetch the user's avatar URL from the database if they are logged in, and construct the appropriate <img> tag for display
+                    if (isset($pdo) && isset($_SESSION['user_id'])) {
+                        $u_stmt = $pdo->prepare("SELECT avatar_url FROM users WHERE id = ?");
+                        $u_stmt->execute([$_SESSION['user_id']]);
+                        $u_data = $u_stmt->fetch();
+                        
+                        if ($u_data && !empty($u_data['avatar_url'])) {
+                            $_SESSION['avatar_url'] = $u_data['avatar_url']; 
+                            $user_avatar_tag = '<img src="' . htmlspecialchars($u_data['avatar_url']) . '" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">';
+                        } elseif (isset($_SESSION['avatar_url']) && !empty($_SESSION['avatar_url'])) {
+                            $user_avatar_tag = '<img src="' . htmlspecialchars($_SESSION['avatar_url']) . '" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">';
+                        }
+                    }
+
+                    // Determine which avatar to show in the top-right profile button based on the active mode (personal user vs society)
+                    $top_avatar = ($active_mode === 'society') ? '<i class="fas fa-users"></i>' : $user_avatar_tag;
                     ?>
+
+                    
 
                     <!-- Profile dropdown trigger button -->
                     <button class="profile-btn" id="profileDropdownBtn">
@@ -100,7 +118,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
 
                         // Resolve the display name and icon for the currently active profile
                         $active_name = $_SESSION['fullname'];
-                        $active_icon = '<i class="fas fa-user"></i>';
+                        $active_icon = $user_avatar_tag;
                         if ($active_mode === 'society' && isset($_SESSION['active_society_name'])) {
                             $active_name = $_SESSION['active_society_name'];
                             $active_icon = '<i class="fas fa-users"></i>';

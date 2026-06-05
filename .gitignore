@@ -4,6 +4,9 @@
 # User-uploaded media files — too large for Git and environment-specific
 /assets/uploads/
 
+# Static assets that are built/compiled during deployment — these can be regenerated and are environment-specific
+/assets/images/
+
 # macOS system metadata files — generated automatically by Finder
 .DS_Store
 
