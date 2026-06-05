@@ -47,7 +47,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
 
         <!-- Centre navigation: primary site links -->
         <nav class="header-center">
-            <a href="index.php"      class="nav-btn active" title="Home">     <i class="fas fa-home"></i>         Home</a>
+            <a href="index.php"      class="nav-btn active" title="Home">     <i class="fas fa-home"></i>        Home</a>
             <a href="events.php"     class="nav-btn"        title="Events">    <i class="fas fa-calendar-alt"></i> Events</a>
             <a href="notices.php"    class="nav-btn"        title="Notices">   <i class="fas fa-thumbtack"></i>    Notices</a>
             <a href="societies.php"  class="nav-btn"        title="Societies"> <i class="fas fa-users"></i>        Societies</a>
@@ -175,9 +175,39 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
 
                             <div class="dropdown-divider"></div>
 
+                            <!-- ============================================================ -->
+                            <!-- Role-Based Dynamic Menu Items (Student vs Society)           -->
+                            <!-- ============================================================ -->
+                            <?php if ($active_mode === 'society'): ?>
+                                <!-- Society Menu Links -->
+                                <a href="society_dashboard.php" class="dropdown-item">
+                                    <div class="item-icon-bg"><i class="fas fa-sliders-h"></i></div>
+                                    <span class="item-text">Society Dashboard</span>
+                                </a>
+                            <?php else: ?>
+                                <!-- Student & Lecturer Menu Links -->
+                                <a href="my_profile.php" class="dropdown-item">
+                                    <div class="item-icon-bg"><i class="fas fa-user"></i></div>
+                                    <span class="item-text">My Profile</span>
+                                </a>
+                                <a href="saved_events.php" class="dropdown-item">
+                                    <div class="item-icon-bg"><i class="fas fa-bookmark"></i></div>
+                                    <span class="item-text">Saved Events</span>
+                                </a>
+                            <?php endif; ?>
+
+                            <div class="dropdown-divider"></div>
+
+                            <!-- ============================================================ -->
+                            <!-- Common Settings (Visible to everyone)                        -->
+                            <!-- ============================================================ -->
                             <a href="settings.php" class="dropdown-item">
                                 <div class="item-icon-bg"><i class="fas fa-cog"></i></div>
                                 <span class="item-text">Settings & privacy</span>
+                            </a>
+                            <a href="help.php" class="dropdown-item">
+                                <div class="item-icon-bg"><i class="fas fa-question-circle"></i></div>
+                                <span class="item-text">Help & Support</span>
                             </a>
                             <a href="logout.php" class="dropdown-item logout-item">
                                 <div class="item-icon-bg"><i class="fas fa-sign-out-alt"></i></div>
