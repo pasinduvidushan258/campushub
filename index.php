@@ -4,6 +4,11 @@ include 'includes/header.php';
 ?>
 
 <main class="main-content">
+
+<!-- Hero Section Component -->
+    <?php include 'includes/hero.php'; ?>
+
+
     <!-- Primary content wrapper for the page layout -->
     <div class="feed-container">
         <!-- Dynamic feed content will be rendered here (posts, cards, or data loaded via PHP/JS) -->
