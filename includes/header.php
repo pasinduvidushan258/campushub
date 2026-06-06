@@ -73,7 +73,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                     <?php
                     require_once 'config/database.php';
                     
-                    // ඩිෆෝල්ට් විදිහට අළු පාට ලස්සන අයිකන් එකක් තියනවා
+                    // Default avatar icon if no custom avatar is set — uses a Font Awesome user icon with a neutral color
                     $user_avatar_tag = '<i class="fas fa-user" style="color: #b0b3b8;"></i>'; 
                     
                     if (isset($pdo) && isset($_SESSION['user_id'])) {
@@ -81,14 +81,14 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                         $u_stmt->execute([$_SESSION['user_id']]);
                         $u_data = $u_stmt->fetch();
                         
-                        // DB එකේ තියෙන එක හරි, Session එකේ තියෙන එක හරි ගන්නවා
+                        // Check if the user has an avatar URL in the database; if not, fall back to any avatar URL stored in the session (from a recent upload), or use the default icon if neither is available
                         $db_avatar = $u_data['avatar_url'] ?? ($_SESSION['avatar_url'] ?? '');
                         
-                        // ඇත්තටම අප්ලෝඩ් කරපු ෆොටෝ එකක් නම් විතරක් (default_avatar.png නෙවෙයි නම්) <img> ටැග් එක හදනවා
+                        // If the user has uploaded a custom avatar, use it
                         if (!empty($db_avatar) && $db_avatar !== 'assets/images/default_avatar.png') {
                             $_SESSION['avatar_url'] = $db_avatar; 
                             
-                            // අනිවාර්යයෙන්ම /campushub/ කෑල්ල එකතු කරනවා (පාත් අවුල් යන්නේ නැති වෙන්න)
+                            // Construct the HTML for the user's avatar image, ensuring it is styled as a circle and fits within the profile button
                             $user_avatar_tag = '<img src="/campushub/' . htmlspecialchars($db_avatar) . '" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">';
                         }
                     }
