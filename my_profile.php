@@ -34,8 +34,14 @@ $university = htmlspecialchars($user_data['university'] ?? 'Not specified');
 $school = htmlspecialchars($user_data['school'] ?? 'Not specified');
 $qualifications = htmlspecialchars($user_data['qualifications'] ?? '');
 
-$avatar_url = htmlspecialchars($user_data['avatar_url'] ?? 'assets/images/default_avatar.png');
-$cover_url = htmlspecialchars($user_data['cover_url'] ?? 'assets/images/default_cover.png');
+$db_avatar = $user_data['avatar_url'] ?? '';
+$db_cover = $user_data['cover_url'] ?? '';
+
+$has_avatar = !empty($db_avatar) && $db_avatar !== 'assets/images/default_avatar.png';
+$has_cover = !empty($db_cover) && $db_cover !== 'assets/images/default_cover.png';
+
+$avatar_url = $has_avatar ? '/campushub/' . htmlspecialchars($db_avatar) : '';
+$cover_url = $has_cover ? '/campushub/' . htmlspecialchars($db_cover) : '';
 
 // includes the header bar
 include 'includes/header.php'; 
@@ -61,7 +67,12 @@ include 'includes/header.php';
             <input type="file" id="coverUpload" name="photo" accept="image/png, image/jpeg, image/jpg" onchange="document.getElementById('coverForm').submit();">
         </form>
 
-        <div class="profile-cover" style="background-image: url('<?php echo $cover_url; ?>'); background-size: cover; background-position: center;">
+        <?php if ($has_cover): ?>
+            <div class="profile-cover" style="background-image: url('<?php echo $cover_url; ?>'); background-size: cover; background-position: center;">
+        <?php else: ?>
+            <div class="profile-cover" style="background-color: #3a3b3c; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-image" style="font-size: 3rem; color: #b0b3b8; opacity: 0.5;"></i>
+        <?php endif; ?>
             <button class="edit-cover-btn" onclick="document.getElementById('coverUpload').click();"><i class="fas fa-camera"></i> Edit Cover</button>
         </div>
         
@@ -72,7 +83,13 @@ include 'includes/header.php';
             </form>
 
             <div class="profile-avatar-wrapper">
-                <img src="<?php echo $avatar_url; ?>" alt="Profile" class="profile-avatar-img">
+                <?php if ($has_avatar): ?>
+                    <img src="<?php echo $avatar_url; ?>" alt="Profile" class="profile-avatar-img">
+                <?php else: ?>
+                    <div class="profile-avatar-img" style="display: flex; align-items: center; justify-content: center; background: #242526; font-size: 4rem; color: #b0b3b8;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                <?php endif; ?>
                 <button class="edit-avatar-btn" onclick="document.getElementById('avatarUpload').click();"><i class="fas fa-camera"></i></button>
             </div>
             

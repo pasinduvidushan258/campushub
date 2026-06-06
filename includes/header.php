@@ -73,23 +73,27 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                     <?php
                     require_once 'config/database.php';
                     
-                    $user_avatar_tag = '<i class="fas fa-user"></i>'; // Default avatar icon if no custom avatar is set
+                    // ඩිෆෝල්ට් විදිහට අළු පාට ලස්සන අයිකන් එකක් තියනවා
+                    $user_avatar_tag = '<i class="fas fa-user" style="color: #b0b3b8;"></i>'; 
                     
-                    // Fetch the user's avatar URL from the database if they are logged in, and construct the appropriate <img> tag for display
                     if (isset($pdo) && isset($_SESSION['user_id'])) {
                         $u_stmt = $pdo->prepare("SELECT avatar_url FROM users WHERE id = ?");
                         $u_stmt->execute([$_SESSION['user_id']]);
                         $u_data = $u_stmt->fetch();
                         
-                        if ($u_data && !empty($u_data['avatar_url'])) {
-                            $_SESSION['avatar_url'] = $u_data['avatar_url']; 
-                            $user_avatar_tag = '<img src="' . htmlspecialchars($u_data['avatar_url']) . '" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">';
-                        } elseif (isset($_SESSION['avatar_url']) && !empty($_SESSION['avatar_url'])) {
-                            $user_avatar_tag = '<img src="' . htmlspecialchars($_SESSION['avatar_url']) . '" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">';
+                        // DB එකේ තියෙන එක හරි, Session එකේ තියෙන එක හරි ගන්නවා
+                        $db_avatar = $u_data['avatar_url'] ?? ($_SESSION['avatar_url'] ?? '');
+                        
+                        // ඇත්තටම අප්ලෝඩ් කරපු ෆොටෝ එකක් නම් විතරක් (default_avatar.png නෙවෙයි නම්) <img> ටැග් එක හදනවා
+                        if (!empty($db_avatar) && $db_avatar !== 'assets/images/default_avatar.png') {
+                            $_SESSION['avatar_url'] = $db_avatar; 
+                            
+                            // අනිවාර්යයෙන්ම /campushub/ කෑල්ල එකතු කරනවා (පාත් අවුල් යන්නේ නැති වෙන්න)
+                            $user_avatar_tag = '<img src="/campushub/' . htmlspecialchars($db_avatar) . '" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">';
                         }
                     }
 
-                    // Determine which avatar to show in the top-right profile button based on the active mode (personal user vs society)
+                    // Determine which avatar to show in the top-right profile button based on the active mode
                     $top_avatar = ($active_mode === 'society') ? '<i class="fas fa-users"></i>' : $user_avatar_tag;
                     ?>
 
