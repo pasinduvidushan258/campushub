@@ -27,6 +27,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
     <link rel="stylesheet" href="assets/css/header-hamburger.css">
     <link rel="stylesheet" href="assets/css/header-dropdown.css">
     <link rel="stylesheet" href="assets/css/header-responsive.css">
+    <link rel="stylesheet" href="/campushub/assets/css/switch-loader.css">
 </head>
 <body>
 

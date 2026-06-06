@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const viewMain        = document.getElementById('profileViewMain');
     const viewAll         = document.getElementById('profileViewAll');
 
-    // Close all open dropdowns and reset to the main view after the CSS transition completes
     function closeAllDropdowns() {
         if (profileDropdown) {
             profileDropdown.classList.remove('show');
@@ -18,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Toggle the profile dropdown on button click; close it first if already open
     if (profileBtn && profileDropdown) {
         profileBtn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -28,13 +26,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Close the dropdown when clicking anywhere outside of it
     document.addEventListener('click', closeAllDropdowns);
-
-    // Prevent clicks inside the dropdown from bubbling up and triggering the close handler
     if (profileDropdown) profileDropdown.addEventListener('click', e => e.stopPropagation());
 
-    // Navigation between the two dropdown views
     const seeAllBtn = document.getElementById('seeAllProfilesBtn');
     const backBtn   = document.getElementById('backToMainProfileBtn');
 
@@ -51,28 +45,84 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Profile switch handler — pending societies redirect to an info page instead of switching
+    // ============================================================
+    // Advanced Facebook-Style Switch Handler
+    // ============================================================
     const switchBtns = document.querySelectorAll('.quick-switch-btn');
     switchBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault(); 
+            
             const status = this.getAttribute('data-status');
 
             if (status === 'pending') {
-                // Society is not yet verified — redirect to the pending status page
                 window.location.href = 'society_pending.php';
-            } else {
-                // Verified society — show a loading spinner, then perform the role switch
-                const icon = this.querySelector('.switchIcon');
-                if (icon) icon.classList.add('spinning-loader');
-
-                const targetType = this.getAttribute('data-type');
-                const targetId   = this.getAttribute('data-id');
-
-                setTimeout(() => {
-                    window.location.href = 'switch_role.php?type=' + targetType + '&id=' + targetId;
-                }, 1000);
+                return;
             }
+
+            const targetType = this.getAttribute('data-type');
+            const targetId   = this.getAttribute('data-id');
+            
+            // 1. නම ලබා ගැනීම
+            const nameElement = this.querySelector('.fb-profile-name');
+            const targetName = nameElement ? nameElement.innerText.trim() : 'Profile';
+
+            // 2. පින්තූරය (Avatar) ලබා ගැනීම
+            const avatarElement = this.querySelector('.fb-avatar-circle');
+            let avatarHTML = '<i class="fas fa-user"></i>'; 
+            
+            if (avatarElement) {
+                avatarHTML = avatarElement.innerHTML; 
+            }
+
+            // 3. ලෝඩින් ස්ක්‍රීන් එක පෙන්වීම 
+            showSwitchingOverlay(targetName, avatarHTML);
+
+            const formData = new FormData();
+            formData.append('type', targetType);
+            formData.append('id', targetId);
+
+            fetch('switch_role.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 1500); 
+                } else {
+                    alert('Error: ' + data.message);
+                    removeOverlay();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Something went wrong!");
+                removeOverlay();
+            });
         });
     });
+
+    function showSwitchingOverlay(name, avatarHTML) {
+        const overlay = document.createElement('div');
+        overlay.id = 'fb-switching-overlay';
+        overlay.innerHTML = `
+            <div class="switching-content">
+                <div class="switching-avatar-wrapper">
+                    <div class="switching-spinner"></div>
+                    <div class="switching-avatar">${avatarHTML}</div>
+                </div>
+                <h2 class="switching-text">Switching to ${name}...</h2>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    function removeOverlay() {
+        const overlay = document.getElementById('fb-switching-overlay');
+        if (overlay) overlay.remove();
+    }
 
 });
