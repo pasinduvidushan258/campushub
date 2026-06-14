@@ -27,7 +27,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
     <link rel="stylesheet" href="assets/css/header-hamburger.css">
     <link rel="stylesheet" href="assets/css/header-dropdown.css">
     <link rel="stylesheet" href="assets/css/header-responsive.css">
-    <link rel="stylesheet" href="/campushub/assets/css/switch-loader.css">
+    <link rel="stylesheet" href="assets/css/switch-loader.css">
 </head>
 <body>
 
@@ -42,16 +42,30 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
             </a>
             <div class="search-bar">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" placeholder="Search events...">
+                <input type="text" id="headerSearchInput" placeholder="Search events...">
             </div>
         </div>
 
-        <!-- Centre navigation: primary site links -->
+        <!-- ===================================================== -->
+        <!-- Centre navigation: primary site links                -->
+        <!-- Active class is set based on the current script name -->
+        <!-- ===================================================== -->
         <nav class="header-center">
-            <a href="index.php"      class="nav-btn active" title="Home">     <i class="fas fa-home"></i>        Home</a>
-            <a href="events.php"     class="nav-btn"        title="Events">    <i class="fas fa-calendar-alt"></i> Events</a>
-            <a href="notices.php"    class="nav-btn"        title="Notices">   <i class="fas fa-thumbtack"></i>    Notices</a>
-            <a href="societies.php"  class="nav-btn"        title="Societies"> <i class="fas fa-users"></i>        Societies</a>
+            <?php
+            $current_page = basename($_SERVER['PHP_SELF']);
+            ?>
+            <a href="index.php"      class="nav-btn <?php echo ($current_page == 'index.php') ? 'active' : ''; ?>" title="Home">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="events.php"     class="nav-btn <?php echo ($current_page == 'events.php') ? 'active' : ''; ?>" title="Events">
+                <i class="fas fa-calendar-alt"></i> Events
+            </a>
+            <a href="notices.php"    class="nav-btn <?php echo ($current_page == 'notices.php') ? 'active' : ''; ?>" title="Notices">
+                <i class="fas fa-thumbtack"></i> Notices
+            </a>
+            <a href="societies.php"  class="nav-btn <?php echo ($current_page == 'societies.php') ? 'active' : ''; ?>" title="Societies">
+                <i class="fas fa-users"></i> Societies
+            </a>
         </nav>
 
         <!-- Right section: action icons and profile menu (authenticated users only) -->
@@ -332,6 +346,23 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
 </header>
 
 <script src="assets/js/header.js"></script>
+
+<!-- Global header search script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const headerSearch = document.getElementById('headerSearchInput');
+    if (headerSearch) {
+        headerSearch.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = encodeURIComponent(this.value.trim());
+                if (query) {
+                    window.location.href = 'events.php?search=' + query;
+                }
+            }
+        });
+    }
+});
+</script>
 
 </body>
 </html>
