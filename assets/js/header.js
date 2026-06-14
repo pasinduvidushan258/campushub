@@ -126,3 +126,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 });
+// Header search functionality
+const headerSearch = document.getElementById('headerSearchInput');
+if (headerSearch) {
+    headerSearch.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = encodeURIComponent(this.value.trim());
+            if (query) {
+                window.location.href = 'events.php?search=' + query;
+            }
+        }
+    });
+}

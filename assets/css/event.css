@@ -1,0 +1,617 @@
+/* ================================================================
+   events.css — CampusHub Events Page Styles
+   ================================================================ */
+
+/* ── Page layout ── */
+.events-page {
+    max-width: 1300px;
+    margin: 40px auto;
+    padding: 0 24px;
+}
+
+/* ── Page heading ── */
+.events-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.events-page-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #E4E6EB;
+    margin: 0;
+}
+.events-count-badge {
+    background: rgba(249, 115, 22, 0.15);
+    color: #F97316;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* ── Filter card ── */
+.filter-card {
+    background: #242526;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ── Search wrapper ── */
+.filter-search-wrap {
+    position: relative;
+    flex: 1 1 240px;
+    min-width: 200px;
+}
+.filter-search-wrap .search-ico {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #B0B3B8;
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+.filter-search-wrap input {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    background: #3A3B3C;
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    color: #E4E6EB;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+}
+.filter-search-wrap input::placeholder { color: #6B6C70; }
+.filter-search-wrap input:focus {
+    border-color: #F97316;
+    background: #2D2E30;
+}
+
+/* ── Select wrapper ── */
+.filter-select-wrap {
+    position: relative;
+    flex: 0 0 170px;
+}
+.filter-select-wrap .select-ico {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #B0B3B8;
+    font-size: 0.8rem;
+    pointer-events: none;
+}
+.filter-select-wrap select {
+    width: 100%;
+    padding: 10px 14px 10px 34px;
+    background: #3A3B3C;
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    color: #E4E6EB;
+    font-size: 0.9rem;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+.filter-select-wrap select:focus,
+.filter-select-wrap select.has-value {
+    border-color: #F97316;
+    background: #2D2E30;
+    color: #F97316;
+}
+/* Custom chevron arrow */
+.filter-select-wrap::after {
+    content: '\f078';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #B0B3B8;
+    font-size: 0.7rem;
+    pointer-events: none;
+}
+
+/* ── Divider ── */
+.filter-divider {
+    width: 1px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+/* ── Filter action buttons ── */
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.btn-filter-apply {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 22px;
+    background: linear-gradient(135deg, #F97316, #ea6910);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+.btn-filter-apply:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+.btn-filter-reset {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #B0B3B8;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+    text-decoration: none;
+}
+.btn-filter-reset:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #E4E6EB;
+}
+
+/* ── Active filter pills ── */
+.active-filter-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(249, 115, 22, 0.12);
+    color: #F97316;
+    border: 1px solid rgba(249, 115, 22, 0.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+.filter-pill a {
+    color: #F97316;
+    text-decoration: none;
+    font-size: 0.75rem;
+    margin-left: 2px;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+.filter-pill a:hover { opacity: 1; }
+
+/* ── Events grid (restored card layout) ── */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+/* ── Events list (compact society-style layout) ── */
+.event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.event-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #242526;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 14px 16px;
+    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+.event-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    border-color: rgba(249, 115, 22, 0.3);
+}
+
+.event-row-poster {
+    width: 72px;
+    height: 72px;
+    border-radius: 14px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.event-row-poster-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2D2E30, #3A3B3C);
+    color: #B0B3B8;
+    font-size: 1.2rem;
+}
+
+.event-row-info {
+    flex: 1;
+    min-width: 0;
+}
+.event-row-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+.event-row-title {
+    font-size: 1.03rem;
+    font-weight: 700;
+    color: #E4E6EB;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.event-row-subtitle,
+.event-row-category {
+    margin: 0;
+    color: #B0B3B8;
+    font-size: 0.86rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.event-row-subtitle i,
+.event-row-category i {
+    color: #F97316;
+    margin-right: 4px;
+}
+.event-row-dot {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    margin: 0 8px;
+    vertical-align: middle;
+}
+
+.event-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ── Event card ── */
+.event-card {
+    background: #242526;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+    display: flex;
+    flex-direction: column;
+}
+.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    border-color: rgba(249, 115, 22, 0.3);
+}
+
+/* ── Card poster ── */
+.event-poster-wrap { position: relative; }
+.event-poster-wrap img {
+    width: 100%;
+    height: 190px;
+    object-fit: cover;
+    display: block;
+}
+.event-poster-placeholder {
+    height: 190px;
+    background: linear-gradient(135deg, #2D2E30, #3A3B3C);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #6B6C70;
+    font-size: 2rem;
+    gap: 6px;
+}
+.event-poster-placeholder span { font-size: 0.8rem; }
+
+/* ── Status badge (top-right overlay) ── */
+.event-status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 3px 11px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.badge-upcoming  { background: rgba(34, 197, 94, 0.2);   color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.35); }
+.badge-ongoing   { background: rgba(59, 130, 246, 0.2);  color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.35); }
+.badge-completed { background: rgba(156, 163, 175, 0.2); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.3); }
+
+/* ── Category chip (top-left overlay) ── */
+.event-category-chip {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    color: #E4E6EB;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+/* ── Card body ── */
+.event-body {
+    padding: 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.event-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #E4E6EB;
+    margin: 0 0 10px;
+    line-height: 1.35;
+}
+
+/* ── Card meta rows ── */
+.event-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 14px;
+}
+.event-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #B0B3B8;
+}
+.event-meta-row i {
+    width: 14px;
+    color: #F97316;
+    flex-shrink: 0;
+}
+
+/* ── Card footer ── */
+.event-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding-top: 14px;
+    margin-top: auto;
+}
+
+/* ── Like / Save buttons ── */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #B0B3B8;
+    padding: 6px 11px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+.action-btn:hover    { background: rgba(255, 255, 255, 0.11); color: #E4E6EB; }
+.action-btn.liked    { color: #ef4444; border-color: rgba(239, 68, 68, 0.3);   background: rgba(239, 68, 68, 0.1); }
+.action-btn.saved    { color: #F97316; border-color: rgba(249, 115, 22, 0.3);  background: rgba(249, 115, 22, 0.1); }
+
+/* ── View Details button ── */
+.action-btn-details {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #F97316, #ea6910);
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.18s;
+}
+.action-btn-details:hover { opacity: 0.88; }
+
+/* ── Empty state ── */
+.events-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 70px 20px;
+    color: #6B6C70;
+}
+.events-empty i        { font-size: 3rem; margin-bottom: 16px; color: #3A3B3C; display: block; }
+.events-empty h3       { font-size: 1.2rem; color: #B0B3B8; margin-bottom: 8px; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+    .filter-card         { flex-direction: column; }
+    .filter-select-wrap  { flex: 1 1 100%; }
+    .filter-divider      { display: none; }
+    .filter-actions      { width: 100%; }
+    .btn-filter-apply,
+    .btn-filter-reset    { flex: 1; justify-content: center; }
+}
+/* ── filter-bar alias ──────────────────────────────────────────────────
+   events.php and societies.php both use the class .filter-bar for their
+   inline search rows. These rules give them the same look as .filter-card
+   without requiring a markup change. */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    background: #242526;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+}
+
+.filter-bar input[type="text"] {
+    flex: 1 1 240px;
+    padding: 10px 14px;
+    background: #3A3B3C;
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    color: #E4E6EB;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+.filter-bar input[type="text"]::placeholder { color: #6B6C70; }
+.filter-bar input[type="text"]:focus {
+    border-color: #F97316;
+    background: #2D2E30;
+}
+
+.filter-bar .btn.btn-primary {
+    padding: 10px 22px;
+    background: linear-gradient(135deg, #F97316, #ea6910);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+.filter-bar .btn.btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+/* ── Society list ── */
+.society-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.society-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: #242526;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 14px 20px;
+    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+.society-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    border-color: rgba(249, 115, 22, 0.3);
+}
+
+.society-row-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.society-row-logo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F97316;
+    font-size: 1.5rem;
+}
+
+.society-row-info {
+    flex: 1;
+    min-width: 0;
+}
+.society-row-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #E4E6EB;
+    margin: 0 0 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.society-row-faculty {
+    font-size: 0.85rem;
+    color: #B0B3B8;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.society-row-events {
+    font-size: 0.85rem;
+    color: #B0B3B8;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.society-row-events i {
+    color: #F97316;
+    margin-right: 4px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .society-row {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .society-row-info {
+        flex: 1 1 60%;
+    }
+    .society-row-events {
+        order: 3;
+    }
+    .action-btn-details {
+        order: 4;
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+    }
+}
