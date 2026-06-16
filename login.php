@@ -23,13 +23,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($email) || empty($password)) {
         $error = "Please enter both email and password.";
     } else {
-        // Fetch the user record matching the submitted email address.
-        // We retrieve the hashed password and is_verified flag for the checks below.
-        $stmt = $pdo->prepare("SELECT id, fullname, password, category, is_verified FROM users WHERE email = ?");
-        $stmt->execute([$email]);
+        // Ensure the PDO connection is available before attempting DB operations.
+        if (!isset($pdo) || !$pdo) {
+            $error = "Server configuration error. Please contact the administrator.";
+        } else {
+            // Fetch the user record matching the submitted email address.
+            // We retrieve the hashed password and is_verified flag for the checks below.
+            $stmt = $pdo->prepare("SELECT id, fullname, password, category, is_verified FROM users WHERE email = ?");
+            $stmt->execute([$email]);
 
-        if ($stmt->rowCount() > 0) {
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($stmt->rowCount() > 0) {
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             // Block login if the user has not yet confirmed their email via OTP.
             // is_verified is set to 1 only after the OTP step in verify.php.
@@ -56,9 +60,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $error = "Invalid email or password.";
                 }
             }
-        } else {
-            // No user found with this email. Same generic message as above for the same reason.
-            $error = "Invalid email or password.";
+            } else {
+                // No user found with this email. Same generic message as above for the same reason.
+                $error = "Invalid email or password.";
+            }
         }
     }
 }
