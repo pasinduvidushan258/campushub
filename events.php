@@ -28,7 +28,7 @@ if (!empty($status)) {
 }
 if (!empty($search)) {
     $where[]  = "(e.title LIKE ? OR s.society_name LIKE ?)";
-    $search_param = "%$search%";
+    $search_param = "$search%";
     $params[] = $search_param;
     $params[] = $search_param;
 }
@@ -36,7 +36,7 @@ if ($society_id > 0) {
     $where[]  = "e.society_id = ?";
     $params[] = $society_id;
 }
-
+// Build the final SQL query with dynamic WHERE clause
 $sql = "SELECT e.*, s.society_name,
         (SELECT COUNT(*) FROM event_likes  WHERE event_id = e.id) AS likes_count,
         (SELECT COUNT(*) FROM saved_events WHERE event_id = e.id) AS saves_count
@@ -58,11 +58,18 @@ $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <span class="events-count-badge"><?= count($events) ?> Event<?= count($events) === 1 ? '' : 's' ?> Found</span>
     </div>
 
-    <!-- Filter Bar -->
+    
     <div class="filter-bar">
-        <div class="filter-search-wrap">
-            <i class="fas fa-search search-ico"></i>
-            <input type="text" id="searchInput" placeholder="Search events or society..." value="<?= htmlspecialchars($search) ?>">
+        <div class="filter-search-wrap"><i class="fas fa-search search-ico"></i>
+
+            <input
+            type="text"
+            id="searchInput"
+            placeholder="Search events or society..."
+            value="<?= htmlspecialchars($search) ?>"
+            autocomplete="off">
+
+            <div id="searchSuggestions" class="search-suggestions"></div>
         </div>
 
         <div class="filter-select-wrap">
@@ -93,7 +100,6 @@ $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <!-- Active filter pills -->
     <?php if ($category || $status || $search): ?>
         <div class="active-filter-pills">
             <?php if ($search): ?>
@@ -117,7 +123,6 @@ $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     <?php endif; ?>
 
-    <!-- Events List -->
     <div class="events-grid">
         <?php if (!empty($events)): ?>
             <?php foreach ($events as $event): ?>
@@ -145,7 +150,8 @@ $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="event-body">
                         <h3 class="event-title"><?= htmlspecialchars($event['title']) ?></h3>
                         <div class="event-meta">
-                            <div class="event-meta-row"><i class="fas fa-users"></i> <?= htmlspecialchars($event['society_name']) ?></div>
+                            <div class="event-meta-row"><i class="fas fa-users"></i><a href="society_profile.php?id=<?= $event['society_id'] ?>"
+                                class="action-btn-details"><?= htmlspecialchars($event['society_name']) ?></a></div>
                             <div class="event-meta-row"><i class="fas fa-calendar"></i> <?= date('d M Y', strtotime($event['event_date'])) ?> at <?= date('h:i A', strtotime($event['start_time'])) ?></div>
                             <div class="event-meta-row"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($event['venue']) ?></div>
                         </div>
@@ -173,20 +179,6 @@ $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <script src="assets/js/event.js"></script>
-<script>
-document.getElementById('applyFilters').addEventListener('click', function () {
-    let search   = document.getElementById('searchInput').value;
-    let category = document.getElementById('categorySelect').value;
-    let status   = document.getElementById('statusSelect').value;
-    window.location.href = `events.php?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}&status=${encodeURIComponent(status)}`;
-});
 
-// Allow pressing Enter in the search box to apply filters
-document.getElementById('searchInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        document.getElementById('applyFilters').click();
-    }
-});
-</script>
 
 <?php require_once 'includes/footer.php'; ?>
