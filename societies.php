@@ -12,7 +12,7 @@ $sql = "SELECT s.*, (SELECT COUNT(*) FROM events WHERE society_id = s.id) AS tot
 $params = [];
 if (!empty($search)) {
     $sql     .= " AND (s.society_name LIKE ? OR s.faculty LIKE ?)";
-    $search_param = "%$search%";
+    $search_param = "$search%";// Only search for entries that start with the search term for better relevance
     $params[] = $search_param;
     $params[] = $search_param;
 }
@@ -59,7 +59,7 @@ $societies = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         ? 'assets/images/uploads/' . htmlspecialchars($soc['logo_path'])
                         : '';
                 ?>
-                <div class="society-row" style="display:flex; align-items:center; gap:16px; background:#242526; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:14px 16px;">
+                <div class="society-row"">
                     <?php if ($societyLogo): ?>
                         <img src="<?= $societyLogo ?>" class="society-row-logo" alt="<?= htmlspecialchars($soc['society_name']) ?>">
                     <?php else: ?>
