@@ -76,6 +76,7 @@ include 'includes/header.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/society.css">
+    <link rel="stylesheet" href="assets/css/add-event-modal.css">
 </head>
 <body>
 
@@ -125,7 +126,7 @@ include 'includes/header.php';
             </div>
 
             <div class="soc-actions">
-                <a href="create_event.php?society_id=<?= $society_id ?>" class="btn-primary"><i class="fas fa-plus"></i> Create Event</a>
+                <button class="btn-primary" onclick="openAddEventModal()"><i class="fas fa-plus"></i> Add Event</button>
                 <button class="btn-secondary" onclick="openEditModal()"><i class="fas fa-cog"></i> Manage</button>
             </div>
         </div>
@@ -246,6 +247,102 @@ include 'includes/header.php';
     </div>
 </div>
 
+<!-- ===================== Add Event Modal ===================== -->
+<div id="addEventModal" class="ae-modal-overlay">
+    <div class="ae-modal">
+        <div class="ae-modal-header">
+            <h3><i class="fas fa-calendar-plus"></i> Add New Event</h3>
+            <button type="button" class="ae-modal-close" onclick="closeAddEventModal()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <form id="addEventForm" enctype="multipart/form-data">
+            <div class="ae-modal-body">
+
+                <div id="aeFormMessage" class="ae-form-message"></div>
+
+                <input type="hidden" name="society_id" value="<?= $society_id ?>">
+
+                <div class="ae-field">
+                    <label for="ae_title">Event Title <span class="ae-required">*</span></label>
+                    <input type="text" id="ae_title" name="title" maxlength="255" required placeholder="e.g. AI Workshop 2026">
+                </div>
+
+                <div class="ae-row">
+                    <div class="ae-field">
+                        <label for="ae_category">Category <span class="ae-required">*</span></label>
+                        <select id="ae_category" name="category" required>
+                            <option value="">Select category</option>
+                            <option value="Workshop">Workshop</option>
+                            <option value="Seminar">Seminar</option>
+                            <option value="Competition">Competition</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Cultural">Cultural</option>
+                            <option value="Music">Music</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Career">Career</option>
+                            <option value="Volunteer">Volunteer</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="ae-field">
+                        <label for="ae_event_mode">Event Mode</label>
+                        <select id="ae_event_mode" name="event_mode">
+                            <option value="physical">Physical</option>
+                            <option value="online">Online</option>
+                            <option value="hybrid">Hybrid</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="ae-field">
+                    <label for="ae_venue">Venue</label>
+                    <input type="text" id="ae_venue" name="venue" maxlength="255" placeholder="e.g. Main Auditorium">
+                </div>
+
+                <div class="ae-row">
+                    <div class="ae-field">
+                        <label for="ae_event_date">Event Date <span class="ae-required">*</span></label>
+                        <input type="date" id="ae_event_date" name="event_date" required>
+                    </div>
+
+                    <div class="ae-field">
+                        <label for="ae_start_time">Start Time <span class="ae-required">*</span></label>
+                        <input type="time" id="ae_start_time" name="start_time" required>
+                    </div>
+
+                    <div class="ae-field">
+                        <label for="ae_end_time">End Time</label>
+                        <input type="time" id="ae_end_time" name="end_time">
+                    </div>
+                </div>
+
+                <div class="ae-field">
+                    <label for="ae_registration_link">Registration Link</label>
+                    <input type="url" id="ae_registration_link" name="registration_link" placeholder="https://forms.gle/...">
+                </div>
+
+                <div class="ae-field">
+                    <label for="ae_description">Description</label>
+                    <textarea id="ae_description" name="description" rows="4" placeholder="What is this event about?"></textarea>
+                </div>
+
+                <div class="ae-field">
+                    <label for="ae_poster">Event Poster</label>
+                    <input type="file" id="ae_poster" name="poster" accept="image/png, image/jpeg, image/jpg, image/webp">
+                    <span class="ae-hint">JPG, PNG or WEBP. Optional.</span>
+                </div>
+
+            </div>
+
+            <div class="ae-modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeAddEventModal()">Cancel</button>
+                <button type="submit" class="btn-primary" id="aeSubmitBtn"><i class="fas fa-plus"></i> Add Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openSocTab(evt, tabName) {
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
@@ -256,6 +353,80 @@ function openSocTab(evt, tabName) {
 function openEditModal() {
     window.location.href = 'edit_society.php?id=<?= $society_id ?>';
 }
+
+// ===========================
+// Add Event Modal
+// ===========================
+
+const addEventModal = document.getElementById('addEventModal');
+const addEventForm = document.getElementById('addEventForm');
+const aeFormMessage = document.getElementById('aeFormMessage');
+const aeSubmitBtn = document.getElementById('aeSubmitBtn');
+
+function openAddEventModal() {
+    addEventModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAddEventModal() {
+    addEventModal.classList.remove('active');
+    document.body.style.overflow = '';
+    addEventForm.reset();
+    aeFormMessage.style.display = 'none';
+    aeFormMessage.className = 'ae-form-message';
+}
+
+// Close when clicking outside the modal box
+addEventModal.addEventListener('click', function (e) {
+    if (e.target === addEventModal) {
+        closeAddEventModal();
+    }
+});
+
+addEventForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    aeFormMessage.style.display = 'none';
+    aeFormMessage.className = 'ae-form-message';
+
+    aeSubmitBtn.disabled = true;
+    aeSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+    const formData = new FormData(addEventForm);
+
+    fetch('create_event.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        aeSubmitBtn.disabled = false;
+        aeSubmitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Event';
+
+        if (data.success) {
+            aeFormMessage.textContent = data.message || 'Event created successfully.';
+            aeFormMessage.className = 'ae-form-message ae-success';
+            aeFormMessage.style.display = 'block';
+
+            setTimeout(function () {
+                window.location.reload();
+            }, 900);
+        } else {
+            aeFormMessage.textContent = data.message || 'Something went wrong. Please try again.';
+            aeFormMessage.className = 'ae-form-message ae-error';
+            aeFormMessage.style.display = 'block';
+        }
+    })
+    .catch(function () {
+        aeSubmitBtn.disabled = false;
+        aeSubmitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Event';
+        aeFormMessage.textContent = 'Network error. Please try again.';
+        aeFormMessage.className = 'ae-form-message ae-error';
+        aeFormMessage.style.display = 'block';
+    });
+});
+
 </script>
 
 </body>
