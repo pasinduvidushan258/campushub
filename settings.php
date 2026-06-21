@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once 'config/database.php';
+require_once 'includes/security_email.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -16,6 +17,8 @@ $user_id = $_SESSION['user_id'];
 $success = '';
 $error = '';
 $user_email = $_SESSION['email'] ?? '';
+$password_change_stage = $_SESSION['password_change_stage'] ?? null;
+$password_change_data = $_SESSION['password_change_data'] ?? null;
 
 $stmt = $pdo->prepare("SELECT email, password FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
@@ -79,14 +82,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (!password_verify($current_password, $current_user['password'])) {
             $error = 'Current password is incorrect.';
         } else {
-            $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
+            $verification_code = (string) random_int(100000, 999999);
+
+            $_SESSION['password_change_stage'] = 'verify_code';
+            $_SESSION['password_change_data'] = [
+                'user_id' => $user_id,
+                'email' => $current_user['email'],
+                'current_password' => $current_password,
+                'new_password' => $new_password,
+                'confirm_password' => $confirm_password,
+                'code' => $verification_code,
+                'expires_at' => time() + 900,
+            ];
+
+            $mail_result = campushub_send_security_code(
+                $current_user['email'],
+                $_SESSION['fullname'] ?? 'CampusHub user',
+                'Confirm Your Password Change',
+                'Password change verification',
+                'Use the verification code below to confirm your password change request:',
+                $verification_code,
+                'This code will expire in 15 minutes.'
+            );
+
+            if ($mail_result['success']) {
+                $success = 'A verification code has been sent to your email. Enter it below to confirm your password change.';
+            } else {
+                unset($_SESSION['password_change_stage'], $_SESSION['password_change_data']);
+                $error = 'We could not send the verification code. ' . $mail_result['error'];
+            }
+        }
+    }
+
+    if ($action === 'confirm_password_change') {
+        $entered_code = trim($_POST['verification_code'] ?? '');
+
+        if (!$password_change_data || $password_change_stage !== 'verify_code') {
+            $error = 'There is no pending password change to confirm.';
+        } elseif (time() > (int) ($password_change_data['expires_at'] ?? 0)) {
+            unset($_SESSION['password_change_stage'], $_SESSION['password_change_data']);
+            $error = 'The verification code has expired. Please request the password change again.';
+        } elseif ($entered_code === '' || $entered_code !== (string) ($password_change_data['code'] ?? '')) {
+            $error = 'The verification code is incorrect.';
+        } else {
+            $hashed_password = password_hash($password_change_data['new_password'], PASSWORD_BCRYPT);
             $update_stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
             $update_stmt->execute([$hashed_password, $user_id]);
 
+            unset($_SESSION['password_change_stage'], $_SESSION['password_change_data']);
             $success = 'Your password has been updated successfully.';
         }
     }
 }
+
+$password_change_stage = $_SESSION['password_change_stage'] ?? null;
+$password_change_data = $_SESSION['password_change_data'] ?? null;
 
 include 'includes/header.php';
 ?>
@@ -160,10 +210,29 @@ include 'includes/header.php';
                 <div class="settings-card-icon"><i class="fas fa-lock"></i></div>
                 <div>
                     <h2>Change Password</h2>
-                    <p>Choose a new password for your CampusHub account.</p>
+                    <p>Choose a new password for your CampusHub account and confirm it with an emailed code.</p>
                 </div>
             </div>
 
+            <?php if ($password_change_stage === 'verify_code' && $password_change_data): ?>
+                <div class="settings-meta" style="margin-bottom: 16px;">
+                    A verification code was sent to <strong style="color:#F8FAFC;"><?php echo htmlspecialchars($password_change_data['email']); ?></strong>.
+                </div>
+
+                <form class="settings-form" method="POST" action="settings.php">
+                    <input type="hidden" name="action" value="confirm_password_change">
+
+                    <div class="settings-field">
+                        <label for="verification_code">Verification Code</label>
+                        <input class="settings-input" type="text" id="verification_code" name="verification_code" placeholder="Enter the 6-digit code" maxlength="6" required>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button type="submit" class="settings-button primary">Confirm Password Change</button>
+                        <a href="settings.php" class="settings-button secondary">Cancel</a>
+                    </div>
+                </form>
+            <?php else: ?>
             <form class="settings-form" method="POST" action="settings.php">
                 <input type="hidden" name="action" value="change_password">
 
@@ -188,6 +257,7 @@ include 'includes/header.php';
                     <a href="my_profile.php" class="settings-button secondary">Back to Profile</a>
                 </div>
             </form>
+            <?php endif; ?>
         </section>
     </div>
 </div>
