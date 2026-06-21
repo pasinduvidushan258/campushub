@@ -66,7 +66,7 @@ $societies = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="society-row-logo society-row-logo-placeholder">🏛️</div>
                     <?php endif; ?>
 
-                    <div class="society-row-info" style="flex:1; min-width:0;">
+                    <div class="society-row-info" style="flex:1; min-width:0; cursor:pointer;" onclick="window.location.href='society_profile.php?id=<?= (int) $soc['id'] ?>'">
                         <h3 class="society-row-name"><?= htmlspecialchars($soc['society_name']) ?></h3>
                         <p class="society-row-faculty"><?= htmlspecialchars($soc['faculty'] ?? 'Faculty not set') ?></p>
                     </div>
@@ -75,7 +75,7 @@ $societies = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <i class="fas fa-calendar"></i> <?= (int) $soc['total_events'] ?> Event<?= $soc['total_events'] == 1 ? '' : 's' ?>
                     </div>
 
-                    <a href="events.php?society_id=<?= (int) $soc['id'] ?>" class="action-btn-details">View Events <i class="fas fa-arrow-right"></i></a>
+                    <a href="society_profile.php?id=<?= (int) $soc['id'] ?>" class="action-btn-details">View Profile <i class="fas fa-arrow-right"></i></a>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
