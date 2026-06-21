@@ -1,10 +1,10 @@
 <?php
-// කිසිම එරර් මැසේජ් එකක් ඇවිත් පණිවිඩය කැඩෙන එක නවත්තන්න ob_start දානවා
+// Start output buffering to prevent headers from being sent prematurely
 ob_start();
 session_start();
 require 'config/database.php';
 
-ob_clean(); // අනවශ්‍ය හිස්තැන් මකා දැමීම
+ob_clean(); // Clear any unnecessary output
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['user_id'])) {
@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// POST ක්‍රමයට දත්ත ලබා ගැනීම
+// Get data from POST request
 $type = $_POST['type'] ?? 'user';
 $id   = $_POST['id']   ?? 0;
 
@@ -35,7 +35,7 @@ if ($type === 'society') {
     unset($_SESSION['active_society_name']);
 }
 
-// හැමවෙලේම අනිවාර්යයෙන්ම Home Page එකට යවනවා
+// Always redirect to the home page
 $home_page_url = '/campushub/index.php'; 
 
 echo json_encode(['success' => true, 'redirect_url' => $home_page_url]);
