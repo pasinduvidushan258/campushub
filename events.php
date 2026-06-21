@@ -9,13 +9,14 @@ $search     = $_GET['search']     ?? '';
 $society_id = (int) ($_GET['society_id'] ?? 0);
 
 $categories = ['Workshop','Seminar','Competition','Sports','Cultural','Music','Technology','Career','Volunteer','Other'];
-$statuses   = ['upcoming','ongoing','completed'];
+$statuses   = ['upcoming','ongoing'];
 
 // Reject any value that isn't in the allowed list.
 if (!in_array($category, $categories, true)) { $category = ''; }
 if (!in_array($status,   $statuses,   true)) { $status   = ''; }
 
-$where  = ["1=1"];
+// Completed events are never shown on this listing page, regardless of filters.
+$where  = ["e.status != 'completed'"];
 $params = [];
 
 if (!empty($category)) {
