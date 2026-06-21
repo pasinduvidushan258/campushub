@@ -32,6 +32,8 @@ document.addEventListener("DOMContentLoaded", function() {
     // Apply the toggle functionality to the Register page
     setupPasswordToggle('toggleRegPassword', 'regPassword');
     setupPasswordToggle('toggleRegConfirmPassword', 'regConfirmPassword');
+    setupPasswordToggle('toggleResetNewPassword', 'resetNewPassword');
+    setupPasswordToggle('toggleResetConfirmPassword', 'resetConfirmPassword');
 
 
     // =================================================================

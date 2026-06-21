@@ -27,7 +27,16 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
     <link rel="stylesheet" href="assets/css/header-hamburger.css">
     <link rel="stylesheet" href="assets/css/header-dropdown.css">
     <link rel="stylesheet" href="assets/css/header-responsive.css">
+<<<<<<< HEAD
+    <link rel="stylesheet" href="/campushub/assets/css/switch-loader.css">
+    <?php if (!empty($extra_stylesheets) && is_array($extra_stylesheets)): ?>
+        <?php foreach ($extra_stylesheets as $stylesheet): ?>
+            <link rel="stylesheet" href="<?php echo htmlspecialchars($stylesheet); ?>">
+        <?php endforeach; ?>
+    <?php endif; ?>
+=======
     <link rel="stylesheet" href="assets/css/switch-loader.css">
+>>>>>>> 322aa9030c6c7fa9297e09dce2550d861076dd3c
 </head>
 <body>
 
@@ -233,23 +242,83 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                                 </a>
                             <?php endif; ?>
 
-                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-divider desktop-dropdown-divider"></div>
 
                             <!-- ============================================================ -->
-                            <!-- Common Settings (Visible to everyone)                        -->
+                            <!-- Common Settings (Desktop dropdown)                           -->
                             <!-- ============================================================ -->
-                            <a href="settings.php" class="dropdown-item">
-                                <div class="item-icon-bg"><i class="fas fa-cog"></i></div>
-                                <span class="item-text">Settings & privacy</span>
-                            </a>
-                            <a href="help.php" class="dropdown-item">
-                                <div class="item-icon-bg"><i class="fas fa-question-circle"></i></div>
-                                <span class="item-text">Help & Support</span>
-                            </a>
-                            <a href="logout.php" class="dropdown-item logout-item">
-                                <div class="item-icon-bg"><i class="fas fa-sign-out-alt"></i></div>
-                                <span class="item-text" style="color: #ef4444;">Log Out</span>
-                            </a>
+                            <div class="desktop-dropdown-links">
+                                <a href="settings.php" class="dropdown-item">
+                                    <div class="item-icon-bg"><i class="fas fa-cog"></i></div>
+                                    <span class="item-text">Settings & privacy</span>
+                                </a>
+                                <a href="help.php" class="dropdown-item">
+                                    <div class="item-icon-bg"><i class="fas fa-question-circle"></i></div>
+                                    <span class="item-text">Help & Support</span>
+                                </a>
+                                <a href="logout.php" class="dropdown-item logout-item">
+                                    <div class="item-icon-bg"><i class="fas fa-sign-out-alt"></i></div>
+                                    <span class="item-text" style="color: #ef4444;">Log Out</span>
+                                </a>
+                            </div>
+
+                            <!-- ============================================================ -->
+                            <!-- Mobile drawer-style settings list                            -->
+                            <!-- ============================================================ -->
+                            <div class="mobile-dropdown-links">
+                                <button type="button" class="mobile-see-more-btn">
+                                    <span>See more</span>
+                                </button>
+
+                                <details class="mobile-accordion mobile-help-accordion">
+                                    <summary class="mobile-accordion-summary">
+                                        <span class="mobile-accordion-title">
+                                            <i class="fas fa-question-circle"></i>
+                                            <span>Help and support</span>
+                                        </span>
+                                        <i class="fas fa-chevron-down mobile-accordion-caret"></i>
+                                    </summary>
+                                    <div class="mobile-accordion-body">
+                                        <a href="settings.php" class="mobile-accordion-item">
+                                            <span class="mobile-accordion-item-icon"><i class="fas fa-life-ring"></i></span>
+                                            <span class="mobile-accordion-item-text">Help centre</span>
+                                        </a>
+                                        <a href="settings.php" class="mobile-accordion-item">
+                                            <span class="mobile-accordion-item-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                                            <span class="mobile-accordion-item-text">Report a problem</span>
+                                        </a>
+                                    </div>
+                                </details>
+
+                                <details class="mobile-accordion" open>
+                                    <summary class="mobile-accordion-summary">
+                                        <span class="mobile-accordion-title">
+                                            <i class="fas fa-cog"></i>
+                                            <span>Settings and privacy</span>
+                                        </span>
+                                        <i class="fas fa-chevron-down mobile-accordion-caret"></i>
+                                    </summary>
+                                    <div class="mobile-accordion-body">
+                                        <a href="settings.php" class="mobile-accordion-item">
+                                            <span class="mobile-accordion-item-icon"><i class="fas fa-cog"></i></span>
+                                            <span class="mobile-accordion-item-text">Settings</span>
+                                        </a>
+                                        <a href="settings.php" class="mobile-accordion-item">
+                                            <span class="mobile-accordion-item-icon"><i class="fas fa-lock"></i></span>
+                                            <span class="mobile-accordion-item-text">Privacy Centre</span>
+                                        </a>
+                                        <a href="settings.php" class="mobile-accordion-item">
+                                            <span class="mobile-accordion-item-icon"><i class="fas fa-user"></i></span>
+                                            <span class="mobile-accordion-item-text">Manage account</span>
+                                        </a>
+                                    </div>
+                                </details>
+
+                                <a href="logout.php" class="mobile-logout-item">
+                                    <span class="mobile-logout-icon"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span class="mobile-logout-text">Log Out</span>
+                                </a>
+                            </div>
                         </div>
 
                         <!-- ============================================================ -->
