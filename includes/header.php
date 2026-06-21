@@ -27,16 +27,12 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
     <link rel="stylesheet" href="assets/css/header-hamburger.css">
     <link rel="stylesheet" href="assets/css/header-dropdown.css">
     <link rel="stylesheet" href="assets/css/header-responsive.css">
-<<<<<<< HEAD
     <link rel="stylesheet" href="/campushub/assets/css/switch-loader.css">
     <?php if (!empty($extra_stylesheets) && is_array($extra_stylesheets)): ?>
         <?php foreach ($extra_stylesheets as $stylesheet): ?>
             <link rel="stylesheet" href="<?php echo htmlspecialchars($stylesheet); ?>">
         <?php endforeach; ?>
-    <?php endif; ?>
-=======
-    <link rel="stylesheet" href="assets/css/switch-loader.css">
->>>>>>> 322aa9030c6c7fa9297e09dce2550d861076dd3c
+    <?php endif; ?> 
 </head>
 <body>
 
@@ -245,17 +241,31 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                             <div class="dropdown-divider desktop-dropdown-divider"></div>
 
                             <!-- ============================================================ -->
-                            <!-- Common Settings (Desktop dropdown)                           -->
+                            <!-- Settings & Privacy Dropdown (Desktop) - Modified             -->
                             <!-- ============================================================ -->
                             <div class="desktop-dropdown-links">
-                                <a href="settings.php" class="dropdown-item">
-                                    <div class="item-icon-bg"><i class="fas fa-cog"></i></div>
-                                    <span class="item-text">Settings & privacy</span>
+                                <!-- Change Password - Opens in new window -->
+                                <a href="change_password.php" class="dropdown-item" target="_blank" rel="noopener noreferrer">
+                                    <div class="item-icon-bg"><i class="fas fa-key"></i></div>
+                                    <span class="item-text">Change Password</span>
+                                    <i class="fas fa-external-link-alt" style="font-size: 0.7rem; margin-left: auto; color: #94a3b8;"></i>
                                 </a>
-                                <a href="help.php" class="dropdown-item">
-                                    <div class="item-icon-bg"><i class="fas fa-question-circle"></i></div>
-                                    <span class="item-text">Help & Support</span>
+                                <!-- Change Login Email - Opens in new window -->
+                                <a href="change_email.php" class="dropdown-item" target="_blank" rel="noopener noreferrer">
+                                    <div class="item-icon-bg"><i class="fas fa-envelope"></i></div>
+                                    <span class="item-text">Change Login Email</span>
+                                    <i class="fas fa-external-link-alt" style="font-size: 0.7rem; margin-left: auto; color: #94a3b8;"></i>
                                 </a>
+                                
+                                <!-- Manage Account - Only show when active mode is society -->
+                                <?php if ($active_mode === 'society'): ?>
+                                    <a href="manage_account.php" class="dropdown-item">
+                                        <div class="item-icon-bg"><i class="fas fa-user-cog"></i></div>
+                                        <span class="item-text">Manage Account</span>
+                                    </a>
+                                <?php endif; ?>
+                                
+                                <!-- Log Out -->
                                 <a href="logout.php" class="dropdown-item logout-item">
                                     <div class="item-icon-bg"><i class="fas fa-sign-out-alt"></i></div>
                                     <span class="item-text" style="color: #ef4444;">Log Out</span>
@@ -263,33 +273,15 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                             </div>
 
                             <!-- ============================================================ -->
-                            <!-- Mobile drawer-style settings list                            -->
+                            <!-- Mobile drawer-style settings list - Modified                 -->
                             <!-- ============================================================ -->
                             <div class="mobile-dropdown-links">
-                                <button type="button" class="mobile-see-more-btn">
+                                <!-- "See more" button REMOVED -->
+                                <!-- <button type="button" class="mobile-see-more-btn">
                                     <span>See more</span>
-                                </button>
+                                </button> -->
 
-                                <details class="mobile-accordion mobile-help-accordion">
-                                    <summary class="mobile-accordion-summary">
-                                        <span class="mobile-accordion-title">
-                                            <i class="fas fa-question-circle"></i>
-                                            <span>Help and support</span>
-                                        </span>
-                                        <i class="fas fa-chevron-down mobile-accordion-caret"></i>
-                                    </summary>
-                                    <div class="mobile-accordion-body">
-                                        <a href="settings.php" class="mobile-accordion-item">
-                                            <span class="mobile-accordion-item-icon"><i class="fas fa-life-ring"></i></span>
-                                            <span class="mobile-accordion-item-text">Help centre</span>
-                                        </a>
-                                        <a href="settings.php" class="mobile-accordion-item">
-                                            <span class="mobile-accordion-item-icon"><i class="fas fa-exclamation-triangle"></i></span>
-                                            <span class="mobile-accordion-item-text">Report a problem</span>
-                                        </a>
-                                    </div>
-                                </details>
-
+                                <!-- Settings and privacy - Modified to show separate items -->
                                 <details class="mobile-accordion" open>
                                     <summary class="mobile-accordion-summary">
                                         <span class="mobile-accordion-title">
@@ -299,18 +291,26 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                                         <i class="fas fa-chevron-down mobile-accordion-caret"></i>
                                     </summary>
                                     <div class="mobile-accordion-body">
-                                        <a href="settings.php" class="mobile-accordion-item">
-                                            <span class="mobile-accordion-item-icon"><i class="fas fa-cog"></i></span>
-                                            <span class="mobile-accordion-item-text">Settings</span>
+                                        <!-- Change Password - Opens in new window -->
+                                        <a href="change_password.php" class="mobile-accordion-item" target="_blank" rel="noopener noreferrer">
+                                            <span class="mobile-accordion-item-icon"><i class="fas fa-key"></i></span>
+                                            <span class="mobile-accordion-item-text">Change Password</span>
+                                            <i class="fas fa-external-link-alt" style="font-size: 0.7rem; margin-left: auto; color: #94a3b8;"></i>
                                         </a>
-                                        <a href="settings.php" class="mobile-accordion-item">
-                                            <span class="mobile-accordion-item-icon"><i class="fas fa-lock"></i></span>
-                                            <span class="mobile-accordion-item-text">Privacy Centre</span>
+                                        <!-- Change Login Email - Opens in new window -->
+                                        <a href="change_email.php" class="mobile-accordion-item" target="_blank" rel="noopener noreferrer">
+                                            <span class="mobile-accordion-item-icon"><i class="fas fa-envelope"></i></span>
+                                            <span class="mobile-accordion-item-text">Change Login Email</span>
+                                            <i class="fas fa-external-link-alt" style="font-size: 0.7rem; margin-left: auto; color: #94a3b8;"></i>
                                         </a>
-                                        <a href="settings.php" class="mobile-accordion-item">
-                                            <span class="mobile-accordion-item-icon"><i class="fas fa-user"></i></span>
-                                            <span class="mobile-accordion-item-text">Manage account</span>
-                                        </a>
+                                        
+                                        <!-- Manage Account - Only show when active mode is society -->
+                                        <?php if ($active_mode === 'society'): ?>
+                                            <a href="manage_account.php" class="mobile-accordion-item">
+                                                <span class="mobile-accordion-item-icon"><i class="fas fa-user-cog"></i></span>
+                                                <span class="mobile-accordion-item-text">Manage Account</span>
+                                            </a>
+                                        <?php endif; ?>
                                     </div>
                                 </details>
 
