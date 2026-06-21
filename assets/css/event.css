@@ -419,7 +419,6 @@
     margin-top: auto;
 }
 
-/* ── Like / Save buttons ── */
 .action-btn {
     display: inline-flex;
     align-items: center;
@@ -434,8 +433,10 @@
     transition: background 0.18s, color 0.18s, border-color 0.18s;
 }
 .action-btn:hover    { background: rgba(255, 255, 255, 0.11); color: #E4E6EB; }
-.action-btn.liked    { color: #ef4444; border-color: rgba(239, 68, 68, 0.3);   background: rgba(239, 68, 68, 0.1); }
-.action-btn.saved    { color: #F97316; border-color: rgba(249, 115, 22, 0.3);  background: rgba(249, 115, 22, 0.1); }
+.action-btn.liked    { color: #fff; border-color: #ef4444;  background: #ef4444; }
+.action-btn.saved    { color: #fff; border-color: #F97316;  background: #F97316; }
+.action-btn.liked:hover { background: #dc2626; border-color: #dc2626; }
+.action-btn.saved:hover { background: #ea6910; border-color: #ea6910; }
 
 /* ── View Details button ── */
 .action-btn-details {
@@ -473,10 +474,7 @@
     .btn-filter-apply,
     .btn-filter-reset    { flex: 1; justify-content: center; }
 }
-/* ── filter-bar alias ──────────────────────────────────────────────────
-   events.php and societies.php both use the class .filter-bar for their
-   inline search rows. These rules give them the same look as .filter-card
-   without requiring a markup change. */
+
 .filter-bar {
     display: flex;
     align-items: center;
