@@ -419,7 +419,6 @@
     margin-top: auto;
 }
 
-/* ── Like / Save buttons ── */
 .action-btn {
     display: inline-flex;
     align-items: center;
@@ -473,10 +472,7 @@
     .btn-filter-apply,
     .btn-filter-reset    { flex: 1; justify-content: center; }
 }
-/* ── filter-bar alias ──────────────────────────────────────────────────
-   events.php and societies.php both use the class .filter-bar for their
-   inline search rows. These rules give them the same look as .filter-card
-   without requiring a markup change. */
+
 .filter-bar {
     display: flex;
     align-items: center;
