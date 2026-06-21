@@ -123,6 +123,8 @@ include 'includes/header.php';
                 <?php endif; ?>
                 <a href="events.php?society_id=<?= $society_id ?>" class="btn-secondary"><i class="fas fa-calendar"></i> View Events</a>
             </div>
+        </div>
+    </div>
 
     <div class="soc-tabs-container">
         <button class="soc-tab active" onclick="openSocTab(event, 'about')">About</button>
