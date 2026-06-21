@@ -47,7 +47,7 @@
     flex-wrap: wrap;
 }
 
-/* ── Search wrapper ── */
+/* Search wrapper  */
 .filter-search-wrap {
     position: relative;
     flex: 1 1 240px;
@@ -614,4 +614,73 @@
         width: 100%;
         justify-content: center;
     }
+}
+/* Link styling for society names in event cards */
+.society-link{
+    color:#F97316;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.society-link:hover{
+    text-decoration:underline;
+}
+.society-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    background:linear-gradient(135deg,#F97316,#ea6910);
+    color:#fff;
+    border-radius:6px;
+    padding:4px 10px;
+    font-size:0.75rem;
+    font-weight:600;
+    text-decoration:none;
+    transition:opacity .2s;
+}
+
+.society-btn:hover{
+    opacity:.85;
+}
+
+.event-quick-info{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+    margin:25px 0;
+}
+
+.info-box{
+    background:#2D2E30;
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px;
+    padding:15px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.info-box i{
+    color:#F97316;
+    font-size:18px;
+}
+
+.info-box span{
+    color:#E4E6EB;
+}
+
+.society-btn{
+    display:inline-flex;
+    align-items:center;
+    background:linear-gradient(135deg,#F97316,#ea6910);
+    color:#fff;
+    padding:5px 12px;
+    border-radius:6px;
+    text-decoration:none;
+    font-size:0.8rem;
+    font-weight:600;
+}
+
+.society-btn:hover{
+    opacity:.9;
 }

@@ -112,3 +112,5 @@ $notices = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <script src="assets/js/notices.js"></script>
 
 <?php require_once 'includes/footer.php'; ?>
+include 'includes/header.php'; 
+?>

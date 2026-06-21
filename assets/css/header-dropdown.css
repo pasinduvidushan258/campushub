@@ -51,6 +51,8 @@
     border: 1px solid rgba(255,255,255,0.08); 
     z-index: 1000; 
     padding: 12px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
 }
 .profile-dropdown.show { 
     display: block; 
@@ -163,6 +165,141 @@
     margin: 8px 0; 
 }
 
+.desktop-dropdown-links {
+    display: none;
+}
+
+.mobile-dropdown-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.mobile-see-more-btn {
+    width: 100%;
+    border: none;
+    border-radius: 18px;
+    background: #3a3b3c;
+    color: #f8fafc;
+    padding: 16px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.mobile-accordion {
+    border-radius: 18px;
+    overflow: hidden;
+    background: transparent;
+}
+
+.mobile-accordion-summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: #3a3b3c;
+    color: #e4e6eb;
+    cursor: pointer;
+    user-select: none;
+}
+
+.mobile-accordion-summary::-webkit-details-marker {
+    display: none;
+}
+
+.mobile-accordion-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.mobile-accordion-title i {
+    font-size: 1.05rem;
+    color: #e4e6eb;
+}
+
+.mobile-accordion-caret {
+    color: #b0b3b8;
+    transition: transform 0.2s ease;
+}
+
+.mobile-accordion[open] .mobile-accordion-caret {
+    transform: rotate(180deg);
+}
+
+.mobile-accordion-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 12px;
+}
+
+.mobile-accordion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: #e4e6eb;
+    background: #3a3b3c;
+    border-radius: 16px;
+    padding: 14px 16px;
+    min-height: 58px;
+    transition: background 0.2s ease;
+}
+
+.mobile-accordion-item:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.mobile-accordion-item-icon,
+.mobile-logout-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 36px;
+    color: #e4e6eb;
+}
+
+.mobile-accordion-item-text,
+.mobile-logout-text {
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: #e4e6eb;
+}
+
+.mobile-help-accordion .mobile-accordion-body {
+    padding-top: 10px;
+}
+
+.mobile-logout-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    background: #3a3b3c;
+    border-radius: 16px;
+    padding: 14px 16px;
+    min-height: 58px;
+}
+
+.mobile-logout-text {
+    color: #ef4444;
+}
+
 /* ====================================================
    LOWER MENU NAVIGATION ITEMS (WITH RIGHT CHEVRONS)
    ==================================================== */
@@ -244,4 +381,50 @@
 @keyframes rotateLoader {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+@media (max-width: 560px) {
+    .profile-dropdown {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        right: auto;
+        width: calc(100vw - 20px) !important;
+        min-width: 0;
+        max-width: 390px;
+        height: calc(100vh - 20px);
+        padding: 14px;
+        border-radius: 28px;
+        background: #2a2b2c;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+    }
+
+    .desktop-dropdown-links,
+    .desktop-dropdown-divider {
+        display: none;
+    }
+}
+
+@media (max-width: 380px) {
+    .profile-dropdown {
+        left: 8px;
+        top: 8px;
+        width: calc(100vw - 16px) !important;
+        height: calc(100vh - 16px);
+        padding: 12px;
+        border-radius: 24px;
+    }
+
+    .mobile-see-more-btn,
+    .mobile-accordion-summary,
+    .mobile-accordion-item,
+    .mobile-logout-item {
+        border-radius: 14px;
+    }
+
+    .mobile-accordion-title,
+    .mobile-accordion-item-text,
+    .mobile-logout-text {
+        font-size: 0.92rem;
+    }
 }
