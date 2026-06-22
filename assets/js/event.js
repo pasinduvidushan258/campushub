@@ -112,12 +112,40 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ===========================
+    // Shared helper: toast-style inline error
+    // ===========================
+
+    function showActionError(btn, message) {
+        // Brief, non-blocking inline message instead of a disruptive alert().
+        let toast = document.createElement('span');
+        toast.className = 'action-error-toast';
+        toast.textContent = message;
+        btn.parentElement.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
+    }
+
+    // ===========================
     // Like Event
     // ===========================
 
     function handleLike(btn) {
 
+        // Prevent double-fire from a second click while a request is still in flight.
+        if (btn.dataset.busy === '1') return;
+        btn.dataset.busy = '1';
+        btn.classList.add('is-loading');
+
         const eventId = btn.dataset.id;
+        const wasLiked = btn.classList.contains('liked');
+        const countEl = btn.querySelector('.likes-count');
+        const previousCount = countEl ? countEl.textContent : null;
+
+        // Optimistic UI update so the click feels instant.
+        btn.classList.toggle('liked', !wasLiked);
+        if (countEl) {
+            const current = parseInt(previousCount, 10) || 0;
+            countEl.textContent = wasLiked ? Math.max(0, current - 1) : current + 1;
+        }
 
         const formData = new FormData();
         formData.append('event_id', eventId);
@@ -130,20 +158,37 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
 
             if (!data.success) {
-                window.location.href = 'login.php';
+                // Roll back the optimistic update.
+                btn.classList.toggle('liked', wasLiked);
+                if (countEl && previousCount !== null) {
+                    countEl.textContent = previousCount;
+                }
+
+                if (data.message === 'Please login') {
+                    window.location.href = 'login.php';
+                    return;
+                }
+
+                showActionError(btn, data.message || 'Could not update like.');
                 return;
             }
 
-            btn.classList.toggle(
-                'liked',
-                data.action === 'liked'
-            );
-
-            const count = btn.querySelector('.likes-count');
-
-            if (count) {
-                count.textContent = data.new_count;
+            // Reconcile with the server's authoritative values.
+            btn.classList.toggle('liked', data.action === 'liked');
+            if (countEl) {
+                countEl.textContent = data.new_count;
             }
+        })
+        .catch(() => {
+            btn.classList.toggle('liked', wasLiked);
+            if (countEl && previousCount !== null) {
+                countEl.textContent = previousCount;
+            }
+            showActionError(btn, 'Network error. Please try again.');
+        })
+        .finally(() => {
+            btn.dataset.busy = '0';
+            btn.classList.remove('is-loading');
         });
     }
 
@@ -161,7 +206,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function handleSave(btn) {
 
+        // Prevent double-fire from a second click while a request is still in flight.
+        if (btn.dataset.busy === '1') return;
+        btn.dataset.busy = '1';
+        btn.classList.add('is-loading');
+
         const eventId = btn.dataset.id;
+        const wasSaved = btn.classList.contains('saved');
+        const countEl = btn.querySelector('.saves-count');
+        const previousCount = countEl ? countEl.textContent : null;
+
+        // Optimistic UI update so Save/Unsave feels instant, like Instagram's bookmark toggle.
+        btn.classList.toggle('saved', !wasSaved);
+        if (countEl) {
+            const current = parseInt(previousCount, 10) || 0;
+            countEl.textContent = wasSaved ? Math.max(0, current - 1) : current + 1;
+        }
 
         const formData = new FormData();
         formData.append('event_id', eventId);
@@ -174,31 +234,49 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
 
             if (!data.success) {
-                window.location.href = 'login.php';
+                // Roll back the optimistic update.
+                btn.classList.toggle('saved', wasSaved);
+                if (countEl && previousCount !== null) {
+                    countEl.textContent = previousCount;
+                }
+
+                if (data.message === 'Please login') {
+                    window.location.href = 'login.php';
+                    return;
+                }
+
+                showActionError(btn, data.message || 'Could not update saved status.');
                 return;
             }
 
-            btn.classList.toggle(
-                'saved',
-                data.action === 'saved'
-            );
-
-            const count = btn.querySelector('.saves-count');
-
-            if (count) {
-                count.textContent = data.new_count;
+            // Reconcile with the server's authoritative values.
+            btn.classList.toggle('saved', data.action === 'saved');
+            if (countEl) {
+                countEl.textContent = data.new_count;
             }
 
-            // Remove card from saved page
+            // On the dedicated Saved Events page, unsaving removes the card immediately.
             if (data.action === 'unsaved') {
 
-                const card =
-                    btn.closest('.saved-event-card');
+                const card = btn.closest('.saved-event-card');
 
                 if (card) {
-                    card.remove();
+                    card.style.transition = 'opacity 0.25s ease';
+                    card.style.opacity = '0';
+                    setTimeout(() => card.remove(), 250);
                 }
             }
+        })
+        .catch(() => {
+            btn.classList.toggle('saved', wasSaved);
+            if (countEl && previousCount !== null) {
+                countEl.textContent = previousCount;
+            }
+            showActionError(btn, 'Network error. Please try again.');
+        })
+        .finally(() => {
+            btn.dataset.busy = '0';
+            btn.classList.remove('is-loading');
         });
     }
 

@@ -83,6 +83,4 @@ $saved_events = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endif; ?>
 </div>
 
-<script src="assets/js/event.js"></script>
-
 <?php require_once 'includes/footer.php'; ?>

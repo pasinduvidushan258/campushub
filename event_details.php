@@ -232,6 +232,4 @@ $save_count = (int)$save_count_stmt->fetchColumn();
     </div>
 </div>
 
-<script src="assets/js/event.js"></script>
-
 <?php require_once 'includes/footer.php'; ?>

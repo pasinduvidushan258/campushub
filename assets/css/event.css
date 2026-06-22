@@ -2,6 +2,30 @@
    events.css — CampusHub Events Page Styles
    ================================================================ */
 
+/* ── Homepage "Latest Events" feed section ── */
+.feed-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 24px 40px;
+}
+.latest-events-section {
+    margin-top: 30px;
+}
+.latest-events-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.latest-events-heading h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #E4E6EB;
+    margin: 0;
+}
+
 /* ── Page layout ── */
 .events-page {
     max-width: 1300px;
@@ -433,10 +457,37 @@
     transition: background 0.18s, color 0.18s, border-color 0.18s;
 }
 .action-btn:hover    { background: rgba(255, 255, 255, 0.11); color: #E4E6EB; }
+.action-btn:active   { transform: scale(0.94); }
 .action-btn.liked    { color: #fff; border-color: #ef4444;  background: #ef4444; }
 .action-btn.saved    { color: #fff; border-color: #F97316;  background: #F97316; }
 .action-btn.liked:hover { background: #dc2626; border-color: #dc2626; }
 .action-btn.saved:hover { background: #ea6910; border-color: #ea6910; }
+.action-btn.is-loading  { opacity: 0.65; pointer-events: none; }
+
+/* ── Inline error toast for failed like/save actions ── */
+.event-footer,
+.saved-event-actions {
+    position: relative;
+}
+.action-error-toast {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    background: #2d2e30;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    white-space: nowrap;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    animation: toastIn 0.2s ease;
+    z-index: 5;
+}
+@keyframes toastIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
 
 /* ── View Details button ── */
 .action-btn-details {
