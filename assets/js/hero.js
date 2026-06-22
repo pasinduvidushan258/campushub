@@ -1,12 +1,16 @@
-const images = [
-    "assets/images/events/event1.jpeg",
-    "assets/images/events/event2.jpeg",
-    "assets/images/events/event3.jpeg",
-    "assets/images/events/event4.jpeg",
-    "assets/images/events/event5.jpeg",
-    "assets/images/events/event6.jpeg"
-    // add more images as needed
-];
+// Prefer real event posters injected by includes/hero.php (window.heroEventImages).
+// Falls back to this static list if that data isn't present for any reason.
+const images = (window.heroEventImages && window.heroEventImages.length >= 4)
+    ? window.heroEventImages
+    : [
+        "assets/images/events/event1.jpeg",
+        "assets/images/events/event2.jpeg",
+        "assets/images/events/event3.jpeg",
+        "assets/images/events/event4.jpeg",
+        "assets/images/events/event5.jpeg",
+        "assets/images/events/event6.jpeg"
+        // add more images as needed
+    ];
 
 let currentIndex = 0;
 

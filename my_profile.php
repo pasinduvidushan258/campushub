@@ -43,6 +43,24 @@ $has_cover = !empty($db_cover) && $db_cover !== 'assets/images/default_cover.png
 $avatar_url = $has_avatar ? '/campushub/' . htmlspecialchars($db_avatar) : '';
 $cover_url = $has_cover ? '/campushub/' . htmlspecialchars($db_cover) : '';
 
+// Pull the user's saved events here too, so "Saved" is consistently available
+// across the system (header dropdown, saved_events.php, and the profile page).
+$saved_events_preview = [];
+if (isset($pdo)) {
+    $savedStmt = $pdo->prepare("
+        SELECT e.*, s.society_name,
+            (SELECT COUNT(*) FROM saved_events WHERE event_id = e.id) AS saves_count
+        FROM saved_events se
+        JOIN events e ON se.event_id = e.id
+        JOIN societies s ON e.society_id = s.id
+        WHERE se.user_id = ?
+        ORDER BY se.created_at DESC
+        LIMIT 6
+    ");
+    $savedStmt->execute([$user_id]);
+    $saved_events_preview = $savedStmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 // includes the header bar
 include 'includes/header.php'; 
 ?>
@@ -117,6 +135,7 @@ include 'includes/header.php';
 
     <div class="profile-tabs-container">
         <button class="profile-tab active" onclick="openTab(event, 'about')">About</button>
+        <button class="profile-tab" onclick="openTab(event, 'saved')">Saved Events</button>
         <button class="profile-tab" onclick="openTab(event, 'societies')">Societies</button>
     </div>
 
@@ -148,6 +167,30 @@ include 'includes/header.php';
                     <?php endif; ?>
                 </ul>
             </div>
+        </div>
+
+        <div id="saved" class="tab-pane">
+            <?php if (empty($saved_events_preview)): ?>
+                <div class="info-card" style="text-align: center; padding: 40px 25px;">
+                    <i class="fas fa-bookmark" style="font-size: 2.2rem; color: #F97316; opacity: 0.6; margin-bottom: 12px; display: block;"></i>
+                    <h3 style="margin: 0 0 8px; color: #E4E6EB;">No saved events yet</h3>
+                    <p style="margin: 0 0 18px; color: #b0b3b8;">Click the bookmark icon on any event to save it for quick access.</p>
+                    <a href="events.php" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">Explore Events</a>
+                </div>
+            <?php else: ?>
+                <div class="society-grid">
+                    <?php foreach ($saved_events_preview as $sevent): ?>
+                        <a href="event_details.php?id=<?= $sevent['id'] ?>" class="society-card" style="text-align: left; text-decoration: none; display: block;">
+                            <h4 style="margin-bottom: 8px;"><?= htmlspecialchars($sevent['title']) ?></h4>
+                            <p><i class="fas fa-users"></i> <?= htmlspecialchars($sevent['society_name']) ?></p>
+                            <p><i class="fas fa-calendar"></i> <?= date('d M Y', strtotime($sevent['event_date'])) ?></p>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+                <div style="margin-top: 18px; text-align: center;">
+                    <a href="saved_events.php" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">View All Saved Events</a>
+                </div>
+            <?php endif; ?>
         </div>
 
         <div id="societies" class="tab-pane">

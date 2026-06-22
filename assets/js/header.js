@@ -63,11 +63,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetType = this.getAttribute('data-type');
             const targetId   = this.getAttribute('data-id');
             
-            // 1. නම ලබා ගැනීම
+            // get name and avatar for the loading screen
             const nameElement = this.querySelector('.fb-profile-name');
             const targetName = nameElement ? nameElement.innerText.trim() : 'Profile';
 
-            // 2. පින්තූරය (Avatar) ලබා ගැනීම
+            // get avatar HTML (could be an image or an icon)
             const avatarElement = this.querySelector('.fb-avatar-circle');
             let avatarHTML = '<i class="fas fa-user"></i>'; 
             
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 avatarHTML = avatarElement.innerHTML; 
             }
 
-            // 3. ලෝඩින් ස්ක්‍රීන් එක පෙන්වීම 
+            // show the switching overlay immediately with the target name and avatar
             showSwitchingOverlay(targetName, avatarHTML);
 
             const formData = new FormData();
@@ -126,3 +126,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 });
+// Header search functionality
+const headerSearch = document.getElementById('headerSearchInput');
+if (headerSearch) {
+    headerSearch.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = encodeURIComponent(this.value.trim());
+            if (query) {
+                window.location.href = 'events.php?search=' + query;
+            }
+        }
+    });
+}
