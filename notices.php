@@ -1,9 +1,8 @@
 <?php
 require_once 'includes/header.php';
 require_once 'config/database.php';
-require_once 'includes/notification_helpers.php'; // For timeAgo()
+require_once 'includes/notification_helpers.php';
 
-// Determine if current user can post
 $canPost = false;
 $active_mode = $_SESSION['active_mode'] ?? 'user';
 $author_avatar = '';
@@ -11,7 +10,6 @@ $author_avatar = '';
 if (isset($_SESSION['user_id'])) {
     if ($active_mode === 'society' && isset($_SESSION['active_society_id'])) {
         $canPost = true;
-        // Get society logo
         $stmt = $pdo->prepare("SELECT logo_path FROM societies WHERE id = ?");
         $stmt->execute([$_SESSION['active_society_id']]);
         $soc = $stmt->fetch();
@@ -19,7 +17,6 @@ if (isset($_SESSION['user_id'])) {
             $author_avatar = 'assets/images/uploads/' . $soc['logo_path'];
         }
     } else {
-        // Check if user is admin
         $stmt = $pdo->prepare("SELECT category, avatar_url FROM users WHERE id = ?");
         $stmt->execute([$_SESSION['user_id']]);
         $user = $stmt->fetch();
@@ -30,7 +27,7 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 
-// Fetch all notices
+
 $sql = "SELECT n.*, 
         u.fullname as admin_name, u.avatar_url as admin_avatar,
         s.society_name, s.logo_path as society_logo
