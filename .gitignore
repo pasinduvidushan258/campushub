@@ -7,3 +7,9 @@
 # OS
 .DS_Store
 Thumbs.db
+
+#database
+config/
+
+#images and assets
+assets/

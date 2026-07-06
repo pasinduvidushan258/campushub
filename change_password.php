@@ -27,6 +27,45 @@ if (!$current_user) {
     exit();
 }
 
+// Handle form submission for password change
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'change_password') {
+    $current_password = $_POST['current_password'] ?? '';
+    $new_password = $_POST['new_password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+
+    // Validation
+    if (empty($current_password)) {
+        $error = 'Current password is required.';
+    } elseif (empty($new_password) || empty($confirm_password)) {
+        $error = 'New password and confirmation are required.';
+    } elseif (strlen($new_password) < 8) {
+        $error = 'New password must be at least 8 characters.';
+    } elseif ($new_password !== $confirm_password) {
+        $error = 'Passwords do not match.';
+    } elseif (!password_verify($current_password, $current_user['password'])) {
+        $error = 'Current password is incorrect.';
+    } else {
+        try {
+            // Hash new password
+            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            
+            // Update password in database
+            $update_stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+            if ($update_stmt->execute([$hashed_password, $user_id])) {
+                $success = 'Password changed successfully!';
+                // Refresh current user data
+                $stmt = $pdo->prepare("SELECT email, password FROM users WHERE id = ?");
+                $stmt->execute([$user_id]);
+                $current_user = $stmt->fetch(PDO::FETCH_ASSOC);
+            } else {
+                $error = 'Failed to update password. Please try again.';
+            }
+        } catch (PDOException $e) {
+            $error = 'Database error: ' . $e->getMessage();
+        }
+    }
+}
+
 include 'includes/header.php';
 ?>
 
@@ -424,6 +463,7 @@ include 'includes/header.php';
 
             <!-- ===== MAIN CHANGE PASSWORD FORM ===== -->
             <form id="changePasswordForm" method="POST" action="change_password.php" novalidate>
+                <input type="hidden" name="action" value="change_password" />
                 <!-- Current Password -->
                 <div class="form-group">
                     <label for="currentPassword"><i class="fas fa-lock"></i> Current Password</label>
@@ -642,25 +682,6 @@ include 'includes/header.php';
             return valid;
         }
 
-        // ---------- simulate backend (main) ----------
-        async function submitMainForm(data) {
-            // In production, this would be a fetch to your PHP backend
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const current = data.get('current_password');
-                    const newP = data.get('new_password');
-                    // Demo validation - in production, this would be handled by PHP
-                    if (current !== 'password123') {
-                        resolve({ success: false, message: 'Current password is incorrect.' });
-                    } else if (newP.length < 8) {
-                        resolve({ success: false, message: 'Password must be at least 8 characters.' });
-                    } else {
-                        resolve({ success: true, message: 'Password updated successfully!' });
-                    }
-                }, 1000);
-            });
-        }
-
         // ---------- main form submit ----------
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -670,22 +691,42 @@ include 'includes/header.php';
             updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
 
             const formData = new FormData();
+            formData.append('action', 'change_password');
             formData.append('current_password', currentPw.value.trim());
             formData.append('new_password', newPw.value.trim());
+            formData.append('confirm_password', confirmPw.value.trim());
 
             try {
-                const res = await submitMainForm(formData);
-                if (res.success) {
-                    showStatus(res.message, false);
+                const response = await fetch('change_password.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const text = await response.text();
+                
+                // Check if the page reloaded with success message
+                if (text.includes('settings-alert success')) {
+                    // Password was changed successfully
+                    showStatus('Password changed successfully!', false);
                     currentPw.value = '';
                     newPw.value = '';
                     confirmPw.value = '';
                     clearInlineErrors();
+                    // Reload page after a moment to show updated state
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else if (text.includes('settings-alert error')) {
+                    // Extract error message from response
+                    const errorMatch = text.match(/settings-alert error">([^<]+)</);
+                    const errorMsg = errorMatch ? errorMatch[1] : 'Failed to change password.';
+                    showStatus(errorMsg, true);
                 } else {
-                    showStatus(res.message, true);
+                    showStatus('Something went wrong. Please try again.', true);
                 }
             } catch (err) {
-                showStatus('Something went wrong. Please try again.', true);
+                console.error('Error:', err);
+                showStatus('Network error. Please try again.', true);
             } finally {
                 updateBtn.disabled = false;
                 updateBtn.innerHTML = '<i class="fas fa-pen-to-square"></i> Update Password';

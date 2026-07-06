@@ -27,6 +27,52 @@ if (!$current_user) {
     exit();
 }
 
+// Handle form submission for email change
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'change_email') {
+    $current_password = $_POST['current_password'] ?? '';
+    $new_email = trim($_POST['new_email'] ?? '');
+    $confirm_email = trim($_POST['confirm_email'] ?? '');
+
+    // Validation
+    if (empty($current_password)) {
+        $error = 'Current password is required.';
+    } elseif (empty($new_email) || empty($confirm_email)) {
+        $error = 'New email and confirmation are required.';
+    } elseif ($new_email !== $confirm_email) {
+        $error = 'Emails do not match.';
+    } elseif (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address.';
+    } elseif ($new_email === $current_user['email']) {
+        $error = 'New email must be different from your current email.';
+    } elseif (!password_verify($current_password, $current_user['password'])) {
+        $error = 'Current password is incorrect.';
+    } else {
+        try {
+            // Check if email already exists in database
+            $check_stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+            $check_stmt->execute([$new_email, $user_id]);
+            
+            if ($check_stmt->fetch()) {
+                $error = 'This email is already registered. Please use a different email.';
+            } else {
+                // Update email in database
+                $update_stmt = $pdo->prepare("UPDATE users SET email = ? WHERE id = ?");
+                if ($update_stmt->execute([$new_email, $user_id])) {
+                    $success = 'Email updated successfully!';
+                    // Refresh current user data
+                    $stmt = $pdo->prepare("SELECT email, password FROM users WHERE id = ?");
+                    $stmt->execute([$user_id]);
+                    $current_user = $stmt->fetch(PDO::FETCH_ASSOC);
+                } else {
+                    $error = 'Failed to update email. Please try again.';
+                }
+            }
+        } catch (PDOException $e) {
+            $error = 'Database error: ' . $e->getMessage();
+        }
+    }
+}
+
 include 'includes/header.php';
 ?>
 
@@ -410,6 +456,7 @@ include 'includes/header.php';
 
             <!-- form -->
             <form id="changeEmailForm" method="POST" action="change_email.php" novalidate>
+                <input type="hidden" name="action" value="change_email" />
                 <!-- Current Password -->
                 <div class="form-group">
                     <label for="currentPassword"><i class="fas fa-lock"></i> Current Password</label>
@@ -498,8 +545,7 @@ include 'includes/header.php';
 
         function isValidEmailWithLk(email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) return false;
-            return email.toLowerCase().endsWith('.lk');
+            return emailRegex.test(email);
         }
 
         // validation (returns true if valid)
@@ -515,14 +561,14 @@ include 'includes/header.php';
                 valid = false;
             }
 
-            // 2. new email: required + ends with .lk + valid format
+            // 2. new email: required + valid format
             const newEmailVal = newEmail.value.trim();
             if (!newEmailVal) {
                 newEmailError.querySelector('span').textContent = 'New email is required.';
                 newEmailError.classList.add('visible');
                 valid = false;
             } else if (!isValidEmailWithLk(newEmailVal)) {
-                newEmailError.querySelector('span').textContent = 'Must be a valid email ending with .lk';
+                newEmailError.querySelector('span').textContent = 'Must be a valid email address.';
                 newEmailError.classList.add('visible');
                 valid = false;
             }
@@ -538,7 +584,7 @@ include 'includes/header.php';
                 confirmEmailError.classList.add('visible');
                 valid = false;
             } else if (newEmailVal && confirmVal === newEmailVal && !isValidEmailWithLk(confirmVal)) {
-                confirmEmailError.querySelector('span').textContent = 'Must end with .lk';
+                confirmEmailError.querySelector('span').textContent = 'Must be a valid email.';
                 confirmEmailError.classList.add('visible');
                 valid = false;
             }
@@ -549,24 +595,6 @@ include 'includes/header.php';
             }
 
             return valid;
-        }
-
-        // --- Simulate PHP backend via fetch ---
-        async function submitToBackend(formData) {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const password = formData.get('current_password');
-                    const newEmail = formData.get('new_email');
-
-                    if (password !== 'password123') {
-                        resolve({ success: false, message: 'Current password is incorrect.' });
-                    } else if (!newEmail.toLowerCase().endsWith('.lk')) {
-                        resolve({ success: false, message: 'Email must end with .lk.' });
-                    } else {
-                        resolve({ success: true, message: `Login email updated to ${newEmail}` });
-                    }
-                }, 1000);
-            });
         }
 
         // --- handle form submit ---
@@ -581,22 +609,42 @@ include 'includes/header.php';
             updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
 
             const formData = new FormData();
+            formData.append('action', 'change_email');
             formData.append('current_password', currentPassword.value.trim());
             formData.append('new_email', newEmail.value.trim());
             formData.append('confirm_email', confirmEmail.value.trim());
 
             try {
-                const response = await submitToBackend(formData);
-                if (response.success) {
-                    showStatus(response.message, false);
+                const response = await fetch('change_email.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const text = await response.text();
+                
+                // Check if the page reloaded with success message
+                if (text.includes('settings-alert success')) {
+                    showStatus('Email updated successfully!', false);
                     currentEmailDisplay.textContent = newEmail.value.trim();
                     currentPassword.value = '';
+                    newEmail.value = '';
+                    confirmEmail.value = '';
                     clearInlineErrors();
+                    // Reload page after a moment to show updated state
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else if (text.includes('settings-alert error')) {
+                    // Extract error message from response
+                    const errorMatch = text.match(/settings-alert error">([^<]+)</);
+                    const errorMsg = errorMatch ? errorMatch[1] : 'Failed to update email.';
+                    showStatus(errorMsg, true);
                 } else {
-                    showStatus(response.message, true);
+                    showStatus('Something went wrong. Please try again.', true);
                 }
             } catch (err) {
-                showStatus('Something went wrong. Please try again.', true);
+                console.error('Error:', err);
+                showStatus('Network error. Please try again.', true);
             } finally {
                 updateBtn.disabled = false;
                 updateBtn.innerHTML = '<i class="fas fa-pen-to-square"></i> Update Login Email';
@@ -607,7 +655,7 @@ include 'includes/header.php';
         newEmail.addEventListener('input', function() {
             const val = this.value.trim();
             if (val && !isValidEmailWithLk(val)) {
-                newEmailError.querySelector('span').textContent = 'Must be a valid email ending with .lk';
+                newEmailError.querySelector('span').textContent = 'Must be a valid email address.';
                 newEmailError.classList.add('visible');
             } else {
                 newEmailError.classList.remove('visible');
@@ -630,7 +678,7 @@ include 'includes/header.php';
                 confirmEmailError.querySelector('span').textContent = 'Emails do not match.';
                 confirmEmailError.classList.add('visible');
             } else if (val && !isValidEmailWithLk(val)) {
-                confirmEmailError.querySelector('span').textContent = 'Must end with .lk';
+                confirmEmailError.querySelector('span').textContent = 'Must be a valid email.';
                 confirmEmailError.classList.add('visible');
             } else {
                 confirmEmailError.classList.remove('visible');

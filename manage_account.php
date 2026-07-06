@@ -57,6 +57,91 @@ try {
     // We'll continue anyway
 }
 
+// Handle form submission - Change Society Password
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'change_password') {
+    $current_password = $_POST['current_password'] ?? '';
+    $new_password = $_POST['new_password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+
+    // Validation
+    if (empty($current_password)) {
+        $error = 'Current password is required.';
+    } elseif (empty($new_password) || empty($confirm_password)) {
+        $error = 'New password and confirmation are required.';
+    } elseif (strlen($new_password) < 8) {
+        $error = 'New password must be at least 8 characters.';
+    } elseif ($new_password !== $confirm_password) {
+        $error = 'Passwords do not match.';
+    } elseif (!password_verify($current_password, $society['password'])) {
+        $error = 'Current password is incorrect.';
+    } else {
+        try {
+            // Hash new password
+            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            
+            // Update password in database
+            $update_stmt = $pdo->prepare("UPDATE societies SET password = ? WHERE id = ?");
+            if ($update_stmt->execute([$hashed_password, $society_id])) {
+                $success = 'Society password changed successfully!';
+                // Refresh society data
+                $stmt = $pdo->prepare("SELECT * FROM societies WHERE id = ? AND admin_id = ?");
+                $stmt->execute([$society_id, $user_id]);
+                $society = $stmt->fetch(PDO::FETCH_ASSOC);
+            } else {
+                $error = 'Failed to update password. Please try again.';
+            }
+        } catch (PDOException $e) {
+            $error = 'Database error: ' . $e->getMessage();
+        }
+    }
+}
+
+// Handle form submission - Change Society Email
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'change_email') {
+    $current_password = $_POST['current_password'] ?? '';
+    $new_email = trim($_POST['new_email'] ?? '');
+    $confirm_email = trim($_POST['confirm_email'] ?? '');
+
+    // Validation
+    if (empty($current_password)) {
+        $error = 'Current password is required.';
+    } elseif (empty($new_email) || empty($confirm_email)) {
+        $error = 'New email and confirmation are required.';
+    } elseif ($new_email !== $confirm_email) {
+        $error = 'Emails do not match.';
+    } elseif (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address.';
+    } elseif ($new_email === $society['email']) {
+        $error = 'New email must be different from current email.';
+    } elseif (!password_verify($current_password, $society['password'])) {
+        $error = 'Current password is incorrect.';
+    } else {
+        try {
+            // Check if email already exists in database
+            $check_stmt = $pdo->prepare("SELECT id FROM societies WHERE email = ? AND id != ?");
+            $check_stmt->execute([$new_email, $society_id]);
+            
+            if ($check_stmt->fetch()) {
+                $error = 'This email is already registered. Please use a different email.';
+            } else {
+                // Update email in database
+                $update_stmt = $pdo->prepare("UPDATE societies SET email = ? WHERE id = ?");
+                if ($update_stmt->execute([$new_email, $society_id])) {
+                    $success = 'Society email updated successfully!';
+                    // Refresh society data
+                    $stmt = $pdo->prepare("SELECT * FROM societies WHERE id = ? AND admin_id = ?");
+                    $stmt->execute([$society_id, $user_id]);
+                    $society = $stmt->fetch(PDO::FETCH_ASSOC);
+                } else {
+                    $error = 'Failed to update email. Please try again.';
+                }
+            }
+        } catch (PDOException $e) {
+            $error = 'Database error: ' . $e->getMessage();
+        }
+    }
+}
+
 // Handle form submission - Add Manager
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_manager') {
     $manager_email = trim($_POST['manager_email'] ?? '');
@@ -478,6 +563,141 @@ include 'includes/header.php';
             margin-right: 0.5rem;
         }
 
+        /* ---------- management tabs ---------- */
+        .manage-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+            flex-wrap: wrap;
+        }
+
+        .manage-tab-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-weight: 500;
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: 0.2s;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .manage-tab-btn:hover {
+            color: #f97316;
+        }
+
+        .manage-tab-btn.active {
+            color: #f97316;
+            border-bottom-color: #f97316;
+        }
+
+        .manage-tab-content {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .manage-tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-group label i {
+            color: #f97316;
+            margin-right: 0.4rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            background: #0d1423;
+            color: #f1f5f9;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #64748b;
+        }
+
+        .hint {
+            display: block;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 0.3rem;
+            padding-left: 0.3rem;
+        }
+
+        .hint i {
+            margin-right: 0.25rem;
+            font-size: 0.7rem;
+            color: #f97316;
+        }
+
+        .btn-submit {
+            background: #f97316;
+            color: #0a0e17;
+            border: none;
+            padding: 0.9rem 1.8rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 6px 14px rgba(249, 115, 22, 0.2);
+        }
+
+        .btn-submit:hover {
+            background: #fb923c;
+            transform: scale(1.01);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
         /* ---------- back button ---------- */
         .back-to-profile {
             margin-top: 1.5rem;
@@ -569,61 +789,137 @@ include 'includes/header.php';
 
             <!-- ===== MANAGE ACCOUNT PANEL ===== -->
             <div id="managePanel" class="manage-panel">
-                <h3><i class="fas fa-user-shield"></i> Society Account Management</h3>
+                <h3><i class="fas fa-user-shield"></i> Account Management</h3>
                 <div class="desc">
-                    Add an email address to grant <strong style="color: #f97316;">full management access</strong> to this society account.
-                    The owner of that email can log in and manage the society profile.
+                    Manage your society account password, email, and add managers.
                 </div>
 
-                <!-- add email form -->
-                <form method="POST" action="manage_account.php" id="addManagerForm">
-                    <input type="hidden" name="action" value="add_manager" />
-                    <div class="add-email-form">
-                        <div class="field">
-                            <label for="managerEmailInput"><i class="fas fa-envelope"></i> Manager Email</label>
-                            <input type="email" id="managerEmailInput" name="manager_email" placeholder="manager@example.lk" required />
-                        </div>
-                        <button type="submit" class="btn-add" id="addManagerBtn">
-                            <i class="fas fa-plus-circle"></i> Add Email
-                        </button>
+                <!-- Tab Navigation -->
+                <div class="manage-tabs">
+                    <button type="button" class="manage-tab-btn active" data-tab="tab-managers">
+                        <i class="fas fa-users"></i> Managers
+                    </button>
+                    <button type="button" class="manage-tab-btn" data-tab="tab-password">
+                        <i class="fas fa-lock"></i> Change Password
+                    </button>
+                    <button type="button" class="manage-tab-btn" data-tab="tab-email">
+                        <i class="fas fa-envelope"></i> Change Email
+                    </button>
+                </div>
+
+                <!-- Tab 1: Managers -->
+                <div id="tab-managers" class="manage-tab-content active">
+                    <div class="desc" style="margin-bottom: 1rem; color: #94a3b8; padding-left: 0;">
+                        Add an email address to grant <strong style="color: #f97316;">full management access</strong> to this society account.
+                        The owner of that email can log in and manage the society profile.
                     </div>
-                </form>
 
-                <!-- manager list -->
-                <div class="manager-list" id="managerListContainer">
-                    <?php if (empty($managers)): ?>
-                        <div class="empty-managers">
-                            <i class="fas fa-info-circle"></i> No managers yet. Add an email above.
-                        </div>
-                    <?php else: ?>
-                        <?php foreach ($managers as $manager): ?>
-                            <div class="manager-item">
-                                <span class="email">
-                                    <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($manager['email']); ?>
-                                </span>
-                                <span class="role <?php echo $manager['role']; ?>">
-                                    <?php echo ucfirst($manager['role']); ?>
-                                </span>
-                                <div class="actions">
-                                    <?php if ($manager['role'] !== 'owner'): ?>
-                                        <form method="POST" action="manage_account.php" style="display: inline;">
-                                            <input type="hidden" name="action" value="remove_manager" />
-                                            <input type="hidden" name="manager_id" value="<?php echo $manager['id']; ?>" />
-                                            <button type="submit" class="remove-btn" title="Remove access">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
-                                    <?php else: ?>
-                                        <button class="remove-btn" disabled title="Cannot remove owner">
-                                            <i class="fas fa-lock"></i>
-                                        </button>
-                                    <?php endif; ?>
-                                </div>
+                    <!-- add email form -->
+                    <form method="POST" action="manage_account.php" id="addManagerForm">
+                        <input type="hidden" name="action" value="add_manager" />
+                        <div class="add-email-form">
+                            <div class="field">
+                                <label for="managerEmailInput"><i class="fas fa-envelope"></i> Manager Email</label>
+                                <input type="email" id="managerEmailInput" name="manager_email" placeholder="manager@example.lk" required />
                             </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                            <button type="submit" class="btn-add" id="addManagerBtn">
+                                <i class="fas fa-plus-circle"></i> Add Email
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- manager list -->
+                    <div class="manager-list" id="managerListContainer">
+                        <?php if (empty($managers)): ?>
+                            <div class="empty-managers">
+                                <i class="fas fa-info-circle"></i> No managers yet. Add an email above.
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($managers as $manager): ?>
+                                <div class="manager-item">
+                                    <span class="email">
+                                        <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($manager['email']); ?>
+                                    </span>
+                                    <span class="role <?php echo $manager['role']; ?>">
+                                        <?php echo ucfirst($manager['role']); ?>
+                                    </span>
+                                    <div class="actions">
+                                        <?php if ($manager['role'] !== 'owner'): ?>
+                                            <form method="POST" action="manage_account.php" style="display: inline;">
+                                                <input type="hidden" name="action" value="remove_manager" />
+                                                <input type="hidden" name="manager_id" value="<?php echo $manager['id']; ?>" />
+                                                <button type="submit" class="remove-btn" title="Remove access">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <button class="remove-btn" disabled title="Cannot remove owner">
+                                                <i class="fas fa-lock"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Tab 2: Change Password -->
+                <div id="tab-password" class="manage-tab-content">
+                    <form method="POST" action="manage_account.php" id="changePasswordForm">
+                        <input type="hidden" name="action" value="change_password" />
+                        
+                        <div class="form-group">
+                            <label for="pwCurrentPassword"><i class="fas fa-lock"></i> Current Password</label>
+                            <input type="password" id="pwCurrentPassword" name="current_password" placeholder="Enter current society password" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pwNewPassword"><i class="fas fa-pen"></i> New Password</label>
+                            <input type="password" id="pwNewPassword" name="new_password" placeholder="Create a new password" required />
+                            <span class="hint"><i class="fas fa-shield-alt"></i> Use at least 8 characters for a stronger password.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pwConfirmPassword"><i class="fas fa-check-double"></i> Confirm New Password</label>
+                            <input type="password" id="pwConfirmPassword" name="confirm_password" placeholder="Re-enter the new password" required />
+                        </div>
+
+                        <button type="submit" class="btn-submit" id="pwSubmitBtn">
+                            <i class="fas fa-pen-to-square"></i> Update Password
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tab 3: Change Email -->
+                <div id="tab-email" class="manage-tab-content">
+                    <div class="desc" style="margin-bottom: 1rem; color: #94a3b8; padding-left: 0;">
+                        Current email: <strong style="color: #f97316;"><?php echo htmlspecialchars($society['email'] ?? ''); ?></strong>
+                    </div>
+
+                    <form method="POST" action="manage_account.php" id="changeEmailForm">
+                        <input type="hidden" name="action" value="change_email" />
+                        
+                        <div class="form-group">
+                            <label for="emailCurrentPassword"><i class="fas fa-lock"></i> Current Password</label>
+                            <input type="password" id="emailCurrentPassword" name="current_password" placeholder="Enter current society password" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="emailNewEmail"><i class="fas fa-envelope-open-text"></i> New Email</label>
+                            <input type="email" id="emailNewEmail" name="new_email" placeholder="newemail@example.com" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="emailConfirmEmail"><i class="fas fa-check-double"></i> Confirm New Email</label>
+                            <input type="email" id="emailConfirmEmail" name="confirm_email" placeholder="Re-enter the new email" required />
+                        </div>
+
+                        <button type="submit" class="btn-submit" id="emailSubmitBtn">
+                            <i class="fas fa-pen-to-square"></i> Update Email
+                        </button>
+                    </form>
+                </div>
 
             <!-- Back to Society Dashboard - Changed from my_profile.php to society_dashboard.php -->
             <a href="society_dashboard.php" class="back-to-profile">
@@ -638,6 +934,8 @@ include 'includes/header.php';
         // DOM refs
         const manageBtn = document.getElementById('manageAccountBtn');
         const managePanel = document.getElementById('managePanel');
+        const tabButtons = document.querySelectorAll('.manage-tab-btn');
+        const tabContents = document.querySelectorAll('.manage-tab-content');
 
         // Manage Account button: toggle panel
         manageBtn.addEventListener('click', function() {
@@ -646,6 +944,21 @@ include 'includes/header.php';
                 // scroll into view
                 managePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
+        });
+
+        // Tab switching functionality
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Remove active from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active to clicked button and corresponding content
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
         });
 
         // Auto-open panel if there are any alerts (success/error)
