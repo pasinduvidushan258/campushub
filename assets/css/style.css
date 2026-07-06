@@ -1,0 +1,70 @@
+/* style.css - Main stylesheet for CampusHub */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #18191a; 
+    color: #ffffff;
+}
+/* Events & Societies styling */
+.action-btn {
+    background: none;
+    border: none;
+    color: #B0B3B8;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+.action-btn.liked, .action-btn.saved {
+    color: #F97316;
+}
+.action-btn:hover {
+    color: #F97316;
+}
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+    background: #242526;
+    padding: 15px;
+    border-radius: 12px;
+}
+.filter-bar input, .filter-bar select {
+    background: #3A3B3C;
+    border: 1px solid #4E4F50;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+/* Event Card Hover Effect */
+.event-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    border-color: rgba(249,115,22,0.3);
+}
+
+/* Like/Save Button Active States */
+.action-btn.liked {
+    color: #ef4444 !important;
+}
+.action-btn.saved {
+    color: #F97316 !important;
+}
+
+/* Filter Bar Responsive */
+@media (max-width: 768px) {
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    .filter-bar select,
+    .filter-bar input,
+    .filter-bar button {
+        width: 100%;
+    }
+}

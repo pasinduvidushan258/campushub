@@ -1,0 +1,58 @@
+/* Facebook-style Full Screen Profile Switching Loader */
+#fb-switching-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #18191a; 
+    z-index: 999999; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e4e6eb;
+    font-family: sans-serif;
+}
+.switching-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.switching-avatar-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+}
+.switching-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #242526;
+    position: absolute;
+    top: 10px; left: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+}
+.switching-spinner {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    border: 3px solid transparent;
+    border-top-color: #0866ff; /* FB Blue */
+    border-right-color: #0866ff;
+    border-radius: 50%;
+    animation: fb-spin 1s linear infinite;
+}
+.switching-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+@keyframes fb-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.switching-avatar img {
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover;
+    display: block;
+}

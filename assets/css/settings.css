@@ -1,0 +1,230 @@
+/* ====================================================
+   CampusHub - Settings Page Styles
+   ==================================================== */
+
+.settings-page {
+    max-width: 1080px;
+    margin: 32px auto 60px;
+    padding: 0 20px;
+    color: #E4E6EB;
+}
+
+.settings-hero {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.16), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+    margin-bottom: 24px;
+}
+
+.settings-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.78rem;
+    color: #F97316;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.settings-hero h1 {
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    margin: 0 0 10px;
+    color: #F8FAFC;
+}
+
+.settings-hero p {
+    color: #b0b3b8;
+    max-width: 760px;
+    line-height: 1.6;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.settings-card {
+    background: rgba(24, 25, 26, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+}
+
+.settings-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.settings-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(249, 115, 22, 0.14);
+    color: #F97316;
+    font-size: 1.1rem;
+    flex: 0 0 auto;
+}
+
+.settings-card-header h2 {
+    margin: 0 0 4px;
+    color: #F8FAFC;
+    font-size: 1.2rem;
+}
+
+.settings-card-header p {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #E4E6EB;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.settings-field .field-hint {
+    margin-top: 8px;
+    color: #9ca3af;
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.settings-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 15px 16px;
+    color: #F8FAFC;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+.settings-input:focus {
+    border-color: #F97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.16);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.settings-meta {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 14px 16px;
+    color: #b0b3b8;
+    font-size: 0.95rem;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.settings-button {
+    border: none;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.settings-button.primary {
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(234, 88, 12, 0.28);
+}
+
+.settings-button.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(234, 88, 12, 0.34);
+}
+
+.settings-button.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #E4E6EB;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-button.secondary:hover {
+    border-color: rgba(249, 115, 22, 0.45);
+    color: #fff;
+}
+
+.settings-alert {
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.settings-alert.success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: #22c55e;
+}
+
+.settings-alert.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #ef4444;
+}
+
+.settings-password-note {
+    color: #9ca3af;
+    font-size: 0.86rem;
+    margin-top: -4px;
+}
+
+@media (max-width: 900px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .settings-page {
+        margin-top: 18px;
+        padding: 0 14px 40px;
+    }
+
+    .settings-hero,
+    .settings-card {
+        border-radius: 18px;
+        padding: 20px;
+    }
+
+    .settings-actions {
+        flex-direction: column;
+    }
+
+    .settings-button {
+        width: 100%;
+    }
+}
