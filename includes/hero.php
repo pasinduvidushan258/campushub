@@ -8,14 +8,29 @@ if (!isset($pdo)) {
 }
 
 $heroEventImages = [];
+$societiesCount = 0;
+$eventsCount = 0;
+$usersCount = 0;
 
 try {
+    $societiesStmt = $pdo->prepare("SELECT COUNT(*) FROM societies");
+    $societiesStmt->execute();
+    $societiesCount = (int) $societiesStmt->fetchColumn();
+
+    $eventsStmt = $pdo->prepare("SELECT COUNT(*) FROM events");
+    $eventsStmt->execute();
+    $eventsCount = (int) $eventsStmt->fetchColumn();
+
+    $usersStmt = $pdo->prepare("SELECT COUNT(*) FROM users");
+    $usersStmt->execute();
+    $usersCount = (int) $usersStmt->fetchColumn();
+
     $heroStmt = $pdo->prepare("
         SELECT poster_path
         FROM events
         WHERE poster_path IS NOT NULL
           AND poster_path != ''
-          AND status IN ('upcoming', 'ongoing')
+          AND event_date >= CURDATE()
         ORDER BY event_date ASC, start_time ASC
         LIMIT 6
     ");
@@ -27,22 +42,7 @@ try {
         }
     }
 } catch (PDOException $e) {
-    error_log('[hero.php] Failed to load event posters: ' . $e->getMessage());
-}
-
-// Fallback so the hero section never renders empty/broken boxes
-// when there aren't enough events with posters yet (e.g. fresh install).
-$heroFallbackImages = [
-    'assets/images/events/event1.jpeg',
-    'assets/images/events/event2.jpeg',
-    'assets/images/events/event3.jpeg',
-    'assets/images/events/event4.jpeg',
-    'assets/images/events/event5.jpeg',
-    'assets/images/events/event6.jpeg',
-];
-
-while (count($heroEventImages) < 4 && !empty($heroFallbackImages)) {
-    $heroEventImages[] = array_shift($heroFallbackImages);
+    error_log('[hero.php] Failed to load hero data: ' . $e->getMessage());
 }
 ?>
 <!-- Hero Section add the css -->
@@ -71,7 +71,7 @@ while (count($heroEventImages) < 4 && !empty($heroFallbackImages)) {
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>50<span>+</span></h3>
+                    <h3><?= number_format($societiesCount) ?></h3>
                     <p>Societies</p>
                 </div>
             </div>
@@ -82,7 +82,7 @@ while (count($heroEventImages) < 4 && !empty($heroFallbackImages)) {
                     <i class="fas fa-calendar-alt"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>200<span>+</span></h3>
+                    <h3><?= number_format($eventsCount) ?></h3>
                     <p>Events</p>
                 </div>
             </div>
@@ -93,8 +93,8 @@ while (count($heroEventImages) < 4 && !empty($heroFallbackImages)) {
                     <i class="fas fa-user-graduate"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>5k<span>+</span></h3>
-                    <p>Students</p>
+                    <h3><?= number_format($usersCount) ?></h3>
+                    <p>Users</p>
                 </div>
             </div>
         </div>

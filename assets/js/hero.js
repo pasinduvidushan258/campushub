@@ -1,16 +1,5 @@
-// Prefer real event posters injected by includes/hero.php (window.heroEventImages).
-// Falls back to this static list if that data isn't present for any reason.
-const images = (window.heroEventImages && window.heroEventImages.length >= 4)
-    ? window.heroEventImages
-    : [
-        "assets/images/events/event1.jpeg",
-        "assets/images/events/event2.jpeg",
-        "assets/images/events/event3.jpeg",
-        "assets/images/events/event4.jpeg",
-        "assets/images/events/event5.jpeg",
-        "assets/images/events/event6.jpeg"
-        // add more images as needed
-    ];
+// Use only the real event posters injected by includes/hero.php (window.heroEventImages).
+const images = Array.isArray(window.heroEventImages) ? window.heroEventImages : [];
 
 let currentIndex = 0;
 
@@ -21,16 +10,20 @@ const boxBL = document.getElementById('heroBox3'); // Bottom Left
 const boxBR = document.getElementById('heroBox4'); // Bottom Right
 
 function loadInitialImages() {
-    if(boxTL && boxTR && boxBL && boxBR) {
-        boxTL.style.backgroundImage = `url('${images[0]}')`; // Top Left
-        boxTR.style.backgroundImage = `url('${images[1]}')`; // Top Right
-        boxBR.style.backgroundImage = `url('${images[2]}')`; // Bottom Right
-        boxBL.style.backgroundImage = `url('${images[3]}')`; // Bottom Left
-    }
+    if (!boxTL || !boxTR || !boxBL || !boxBR) return;
+
+    const totalImages = images.length;
+    if (totalImages === 0) return;
+
+    boxTL.style.backgroundImage = `url('${images[0 % totalImages]}')`; // Top Left
+    boxTR.style.backgroundImage = `url('${images[1 % totalImages]}')`; // Top Right
+    boxBR.style.backgroundImage = `url('${images[2 % totalImages]}')`; // Bottom Right
+    boxBL.style.backgroundImage = `url('${images[3 % totalImages]}')`; // Bottom Left
 }
 
 function rotateClockwise() {
     if(!boxTL || !boxTR || !boxBL || !boxBR) return;
+    if (images.length === 0) return;
 
     // 1. Rotate the boxes in a clockwise direction (add slide classes to trigger CSS animations)
     boxTL.classList.add('slide-right');
