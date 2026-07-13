@@ -8,6 +8,7 @@ if (!isset($pdo)) {
 }
 
 $heroEventImages = [];
+$seenPosterFiles = [];
 $societiesCount = 0;
 $eventsCount = 0;
 $usersCount = 0;
@@ -30,15 +31,27 @@ try {
         FROM events
         WHERE poster_path IS NOT NULL
           AND poster_path != ''
-          AND event_date >= CURDATE()
-        ORDER BY event_date ASC, start_time ASC
-        LIMIT 6
+          AND status IN ('upcoming', 'ongoing')
+                ORDER BY
+                    CASE WHEN event_date >= CURDATE() THEN 0 ELSE 1 END,
+                    event_date ASC,
+                    start_time ASC
+        LIMIT 24
     ");
     $heroStmt->execute();
 
     foreach ($heroStmt->fetchAll(PDO::FETCH_COLUMN) as $posterFile) {
+        if (isset($seenPosterFiles[$posterFile])) {
+            continue;
+        }
+
         if (file_exists(__DIR__ . '/../assets/images/events/' . $posterFile)) {
+            $seenPosterFiles[$posterFile] = true;
             $heroEventImages[] = 'assets/images/events/' . $posterFile;
+
+            if (count($heroEventImages) >= 6) {
+                break;
+            }
         }
     }
 } catch (PDOException $e) {
