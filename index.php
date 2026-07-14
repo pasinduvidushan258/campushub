@@ -94,6 +94,7 @@ $latestEvents = $latestEventsStmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </main>
 
+
 <?php
 // Include the site footer (closing HTML tags, JavaScript files, footer links and copyright)
 include 'includes/footer.php';
