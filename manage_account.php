@@ -223,6 +223,21 @@ include 'includes/header.php';
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-main: #070d1a;
+            --panel: rgba(14, 24, 46, 0.88);
+            --panel-border: rgba(148, 163, 184, 0.17);
+            --field-bg: rgba(8, 15, 30, 0.78);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #f97316;
+            --accent-2: #fb923c;
+            --success: #4ade80;
+            --danger: #f87171;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -230,139 +245,193 @@ include 'includes/header.php';
         }
 
         body {
-            background: #0a0e17;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Sora', 'Segoe UI', sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at 14% 18%, rgba(249, 115, 22, 0.14), transparent 38%),
+                radial-gradient(circle at 88% 8%, rgba(56, 189, 248, 0.12), transparent 30%),
+                linear-gradient(180deg, #050913 0%, #070d1a 45%, #060a12 100%);
+            position: relative;
+            overflow-x: hidden;
         }
 
-        /* Main content wrapper - centers the form vertically and horizontally */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.24;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            top: 140px;
+            left: -110px;
+            background: #f97316;
+        }
+
+        body::after {
+            right: -130px;
+            bottom: -40px;
+            background: #0ea5e9;
+        }
+
         .page-wrapper {
-            flex: 1;
+            position: relative;
+            z-index: 1;
+            min-height: calc(100vh - 120px);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem 1.5rem;
-            margin-top: -40px; /* Offset to account for header */
+            padding: 2.2rem 1.2rem 3rem;
         }
 
         .container {
-            max-width: 800px;
             width: 100%;
+            max-width: 860px;
         }
 
-        /* ---------- profile header ---------- */
-        .profile-header {
-            background: #141b2b;
-            padding: 1.5rem 2rem;
+        .profile-header,
+        .settings-card {
+            background: linear-gradient(160deg, rgba(19, 33, 61, 0.92), rgba(11, 21, 40, 0.9));
+            border: 1px solid var(--panel-border);
             border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+            box-shadow:
+                0 24px 56px rgba(2, 6, 23, 0.66),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .profile-header {
+            padding: 1.35rem 1.6rem;
             display: flex;
             align-items: center;
-            gap: 1.2rem;
+            gap: 1rem;
             flex-wrap: wrap;
-            margin-bottom: 1.8rem;
+            margin-bottom: 1.25rem;
         }
 
         .profile-header .avatar {
-            width: 56px;
-            height: 56px;
-            background: #f97316;
-            border-radius: 40px;
-            display: flex;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: #0a0e17;
-            font-weight: 700;
-            font-size: 1.5rem;
+            background: linear-gradient(140deg, var(--accent), var(--accent-2));
+            color: #111827;
+            font-size: 1.4rem;
+            box-shadow: 0 12px 22px rgba(249, 115, 22, 0.28);
         }
 
         .profile-header .info h3 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #f8fafc;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-weight: 700;
         }
 
         .profile-header .info p {
-            color: #94a3b8;
+            margin-top: 0.35rem;
+            color: var(--text-muted);
             font-size: 0.9rem;
         }
 
-        .badge {
-            background: rgba(249, 115, 22, 0.15);
-            color: #f97316;
-            padding: 0.2rem 1rem;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            margin-left: 0.4rem;
+        .account-email-line i {
+            margin-right: 0.4rem;
+            color: var(--accent);
         }
 
-        /* ---------- settings card ---------- */
+        .badge {
+            border-radius: 999px;
+            padding: 0.2rem 0.68rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: rgba(249, 115, 22, 0.16);
+            color: #fdba74;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+
         .settings-card {
-            background: #141b2b;
-            border-radius: 24px;
-            padding: 2rem 2rem 2.2rem;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.4);
+            padding: 1.85rem 1.7rem 1.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .settings-card::before {
+            content: '';
+            position: absolute;
+            top: -120px;
+            right: -90px;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(249, 115, 22, 0.22), transparent 68%);
+            pointer-events: none;
         }
 
         .settings-card h2 {
+            position: relative;
+            z-index: 1;
             font-size: 1.6rem;
-            font-weight: 600;
-            color: #f8fafc;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.24rem;
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.55rem;
+            color: #fff;
+            font-weight: 700;
         }
 
         .settings-card h2 i {
-            color: #f97316;
+            color: var(--accent);
         }
 
         .settings-card .sub {
-            color: #94a3b8;
-            font-size: 0.95rem;
-            margin-bottom: 1.8rem;
-            padding-left: 2.2rem;
+            position: relative;
+            z-index: 1;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1.35rem;
+            padding-left: 2rem;
         }
 
-        /* ---------- manage account button ---------- */
         .manage-btn-wrapper {
-            margin: 1.2rem 0 1rem;
+            margin: 0.9rem 0 0.7rem;
         }
 
         .btn-manage {
-            background: #f97316;
-            color: #0a0e17;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
+            border: 1px solid transparent;
+            border-radius: 14px;
+            padding: 0.82rem 1.4rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #111827;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
             display: inline-flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.55rem;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+            box-shadow: 0 12px 24px rgba(249, 115, 22, 0.26);
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
         }
 
         .btn-manage:hover {
-            background: #fb923c;
-            transform: scale(1.02);
+            transform: translateY(-1px);
+            box-shadow: 0 16px 32px rgba(249, 115, 22, 0.33);
         }
 
-        /* ---------- manage panel ---------- */
         .manage-panel {
-            margin-top: 2rem;
-            padding-top: 1.8rem;
-            border-top: 2px solid rgba(255, 255, 255, 0.06);
             display: none;
+            margin-top: 1.5rem;
+            padding-top: 1.3rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.24);
+            animation: fadeIn 0.24s ease;
         }
 
         .manage-panel.open {
@@ -370,230 +439,87 @@ include 'includes/header.php';
         }
 
         .manage-panel h3 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #f8fafc;
+            font-size: 1.2rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.5rem;
+            color: #fff;
         }
 
         .manage-panel h3 i {
-            color: #f97316;
+            color: var(--accent);
         }
 
         .manage-panel .desc {
-            color: #94a3b8;
-            font-size: 0.95rem;
-            margin: 0.2rem 0 1.2rem 0;
+            margin: 0.35rem 0 1rem;
+            font-size: 0.89rem;
+            color: var(--text-muted);
+            line-height: 1.55;
         }
 
-        /* ---------- settings alert ---------- */
+        .desc.compact {
+            margin-bottom: 1rem;
+            padding-left: 0;
+        }
+
+        .highlight-accent {
+            color: var(--accent);
+        }
+
         .settings-alert {
-            padding: 0.8rem 1rem;
+            margin-bottom: 1rem;
             border-radius: 12px;
-            margin-bottom: 1.5rem;
-            font-weight: 500;
+            padding: 0.74rem 0.9rem;
+            font-size: 0.88rem;
+            font-weight: 600;
         }
 
         .settings-alert.success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.2);
+            background: rgba(34, 197, 94, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(74, 222, 128, 0.34);
         }
 
         .settings-alert.error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            background: rgba(248, 113, 113, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, 0.34);
         }
 
-        /* ---------- form add email ---------- */
-        .add-email-form {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-            align-items: flex-end;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1.2rem 1.4rem;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            margin-bottom: 1.5rem;
-        }
-
-        .add-email-form .field {
-            flex: 2 1 200px;
-        }
-
-        .add-email-form .field label {
-            display: block;
-            font-weight: 500;
-            font-size: 0.8rem;
-            color: #e2e8f0;
-            margin-bottom: 0.2rem;
-        }
-
-        .add-email-form .field label i {
-            color: #f97316;
-            margin-right: 0.3rem;
-        }
-
-        .add-email-form .field input {
-            width: 100%;
-            padding: 0.6rem 1rem;
-            border: 1.5px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            font-size: 0.95rem;
-            background: #0d1423;
-            color: #f1f5f9;
-            transition: 0.2s;
-        }
-
-        .add-email-form .field input:focus {
-            border-color: #f97316;
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
-        }
-
-        .add-email-form .field input::placeholder {
-            color: #64748b;
-        }
-
-        .add-email-form .btn-add {
-            background: #f97316;
-            color: #0a0e17;
-            border: none;
-            padding: 0.6rem 1.8rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: 0.2s;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .add-email-form .btn-add:hover {
-            background: #fb923c;
-        }
-
-        /* ---------- manager list ---------- */
-        .manager-list {
-            margin-top: 0.8rem;
-        }
-
-        .manager-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.8rem 1rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            margin-bottom: 0.5rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .manager-item .email {
-            font-weight: 500;
-            color: #f1f5f9;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .manager-item .email i {
-            color: #f97316;
-        }
-
-        .manager-item .role {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.9rem;
-            border-radius: 40px;
-            font-weight: 500;
-        }
-
-        .manager-item .role.owner {
-            background: rgba(249, 115, 22, 0.15);
-            color: #f97316;
-        }
-
-        .manager-item .role.manager {
-            background: rgba(255, 255, 255, 0.06);
-            color: #94a3b8;
-        }
-
-        .manager-item .actions {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .manager-item .remove-btn {
-            background: transparent;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 30px;
-            transition: 0.15s;
-        }
-
-        .manager-item .remove-btn:hover:not(:disabled) {
-            background: rgba(239, 68, 68, 0.1);
-        }
-
-        .manager-item .remove-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .empty-managers {
-            color: #64748b;
-            font-size: 0.9rem;
-            padding: 0.6rem 0;
-        }
-
-        .empty-managers i {
-            color: #f97316;
-            margin-right: 0.5rem;
-        }
-
-        /* ---------- management tabs ---------- */
         .manage-tabs {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+            gap: 0.6rem;
+            margin-bottom: 1.1rem;
             flex-wrap: wrap;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+            padding-bottom: 0.5rem;
         }
 
         .manage-tab-btn {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            font-weight: 500;
-            padding: 0.8rem 1.2rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.1);
+            color: #cbd5e1;
+            font-weight: 600;
+            padding: 0.55rem 0.85rem;
+            font-size: 0.85rem;
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: 0.2s;
-            font-size: 0.95rem;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.35rem;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
 
         .manage-tab-btn:hover {
-            color: #f97316;
+            color: #fff;
+            border-color: rgba(249, 115, 22, 0.44);
         }
 
         .manage-tab-btn.active {
-            color: #f97316;
-            border-bottom-color: #f97316;
+            background: rgba(249, 115, 22, 0.2);
+            border-color: rgba(249, 115, 22, 0.52);
+            color: #fed7aa;
         }
 
         .manage-tab-content {
@@ -603,6 +529,213 @@ include 'includes/header.php';
 
         .manage-tab-content.active {
             display: block;
+        }
+
+        .add-email-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.72rem;
+            align-items: flex-end;
+            border-radius: 14px;
+            padding: 0.95rem;
+            margin-bottom: 1rem;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .add-email-form .field {
+            flex: 1 1 210px;
+        }
+
+        .add-email-form .field label,
+        .form-group label {
+            display: block;
+            margin-bottom: 0.36rem;
+            color: #e2e8f0;
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .add-email-form .field label i,
+        .form-group label i,
+        .empty-managers i,
+        .manager-item .email i,
+        .hint i {
+            color: var(--accent);
+        }
+
+        .add-email-form .field input,
+        .form-group input {
+            width: 100%;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 12px;
+            padding: 0.78rem 0.9rem;
+            background: var(--field-bg);
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: border-color 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        .add-email-form .field input:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(249, 115, 22, 0.86);
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.14);
+        }
+
+        .add-email-form .field input::placeholder,
+        .form-group input::placeholder {
+            color: #6b7c95;
+        }
+
+        .add-email-form .btn-add,
+        .btn-submit {
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #111827;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            box-shadow: 0 10px 20px rgba(249, 115, 22, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .add-email-form .btn-add {
+            padding: 0.78rem 1.15rem;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .btn-submit {
+            padding: 0.8rem 1.2rem;
+            font-size: 0.94rem;
+            margin-top: 0.2rem;
+        }
+
+        .add-email-form .btn-add:hover,
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(249, 115, 22, 0.3);
+        }
+
+        .manager-list {
+            margin-top: 0.6rem;
+        }
+
+        .manager-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            margin-bottom: 0.5rem;
+            padding: 0.68rem 0.85rem;
+            border-radius: 12px;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            flex-wrap: wrap;
+        }
+
+        .manager-item .email {
+            color: #f1f5f9;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.89rem;
+        }
+
+        .manager-item .role {
+            border-radius: 999px;
+            padding: 0.18rem 0.72rem;
+            font-size: 0.74rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+
+        .manager-item .role.owner {
+            color: #fdba74;
+            background: rgba(249, 115, 22, 0.16);
+            border-color: rgba(249, 115, 22, 0.34);
+        }
+
+        .manager-item .role.manager {
+            color: #cbd5e1;
+            background: rgba(148, 163, 184, 0.16);
+            border-color: rgba(148, 163, 184, 0.25);
+        }
+
+        .manager-item .actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .manager-item .remove-btn {
+            border: 1px solid rgba(248, 113, 113, 0.34);
+            background: rgba(248, 113, 113, 0.1);
+            color: #fca5a5;
+            border-radius: 999px;
+            width: 32px;
+            height: 32px;
+            font-size: 0.84rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .manager-item .remove-btn:hover:not(:disabled) {
+            background: rgba(248, 113, 113, 0.2);
+            color: #fee2e2;
+        }
+
+        .manager-item .remove-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .empty-managers {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 0.2rem 0;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.32rem;
+            margin-top: 0.35rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.62;
+            pointer-events: none;
+        }
+
+        .back-to-profile {
+            margin-top: 1.3rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.36rem;
+            color: #fdba74;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .back-to-profile:hover {
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
         @keyframes fadeIn {
@@ -616,133 +749,65 @@ include 'includes/header.php';
             }
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #e2e8f0;
-            margin-bottom: 0.4rem;
-        }
-
-        .form-group label i {
-            color: #f97316;
-            margin-right: 0.4rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 1.5px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            background: #0d1423;
-            color: #f1f5f9;
-            font-size: 1rem;
-            transition: 0.2s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #f97316;
-            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
-        }
-
-        .form-group input::placeholder {
-            color: #64748b;
-        }
-
-        .hint {
-            display: block;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-top: 0.3rem;
-            padding-left: 0.3rem;
-        }
-
-        .hint i {
-            margin-right: 0.25rem;
-            font-size: 0.7rem;
-            color: #f97316;
-        }
-
-        .btn-submit {
-            background: #f97316;
-            color: #0a0e17;
-            border: none;
-            padding: 0.9rem 1.8rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            box-shadow: 0 6px 14px rgba(249, 115, 22, 0.2);
-        }
-
-        .btn-submit:hover {
-            background: #fb923c;
-            transform: scale(1.01);
-        }
-
-        .btn-submit:active {
-            transform: scale(0.98);
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        /* ---------- back button ---------- */
-        .back-to-profile {
-            margin-top: 1.5rem;
-            display: inline-block;
-            color: #f97316;
-            font-weight: 500;
-            text-decoration: none;
-            transition: 0.15s;
-        }
-
-        .back-to-profile:hover {
-            color: #fb923c;
-            text-decoration: underline;
-        }
-
-        @media (max-width: 480px) {
+        @media (max-width: 900px) {
             .page-wrapper {
-                padding: 1rem;
-                margin-top: 0;
+                padding-top: 2rem;
             }
+
+            .profile-header,
             .settings-card {
-                padding: 1.8rem 1.2rem;
+                border-radius: 20px;
             }
+        }
+
+        @media (max-width: 640px) {
+            .page-wrapper {
+                min-height: auto;
+                padding: 1rem 0.75rem 2.2rem;
+            }
+
+            .profile-header {
+                padding: 1rem;
+                gap: 0.75rem;
+            }
+
+            .settings-card {
+                padding: 1.2rem 1rem 1.35rem;
+            }
+
+            .settings-card h2 {
+                font-size: 1.35rem;
+            }
+
+            .settings-card .sub {
+                padding-left: 0;
+                font-size: 0.84rem;
+            }
+
+            .manage-tabs {
+                gap: 0.45rem;
+            }
+
+            .manage-tab-btn {
+                font-size: 0.8rem;
+                padding: 0.5rem 0.72rem;
+            }
+
             .add-email-form {
                 flex-direction: column;
                 align-items: stretch;
             }
-            .add-email-form .btn-add {
-                align-self: flex-start;
+
+            .add-email-form .btn-add,
+            .btn-submit {
+                width: 100%;
             }
-            .profile-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .settings-card h2 {
-                font-size: 1.4rem;
-            }
-            .settings-card .sub {
-                padding-left: 0;
-                font-size: 0.85rem;
-            }
+
             .manager-item {
                 flex-direction: column;
                 align-items: flex-start;
             }
+
             .manager-item .actions {
                 width: 100%;
                 justify-content: flex-end;
@@ -763,7 +828,7 @@ include 'includes/header.php';
                     <span id="accountDisplayName"><?php echo htmlspecialchars($society_name); ?></span>
                     <span class="badge" id="accountTypeBadge">Society</span>
                 </h3>
-                <p><i class="fas fa-envelope" style="margin-right: 0.4rem; color: #f97316;"></i> <span id="accountEmailDisplay"><?php echo htmlspecialchars($society['email'] ?? ''); ?></span></p>
+                <p class="account-email-line"><i class="fas fa-envelope"></i> <span id="accountEmailDisplay"><?php echo htmlspecialchars($society['email'] ?? ''); ?></span></p>
             </div>
         </div>
 
@@ -791,7 +856,7 @@ include 'includes/header.php';
             <div id="managePanel" class="manage-panel">
                 <h3><i class="fas fa-user-shield"></i> Account Management</h3>
                 <div class="desc">
-                    Manage your society account password, email, and add managers.
+                    Add and manage society account managers.
                 </div>
 
                 <!-- Tab Navigation -->
@@ -799,18 +864,12 @@ include 'includes/header.php';
                     <button type="button" class="manage-tab-btn active" data-tab="tab-managers">
                         <i class="fas fa-users"></i> Managers
                     </button>
-                    <button type="button" class="manage-tab-btn" data-tab="tab-password">
-                        <i class="fas fa-lock"></i> Change Password
-                    </button>
-                    <button type="button" class="manage-tab-btn" data-tab="tab-email">
-                        <i class="fas fa-envelope"></i> Change Email
-                    </button>
                 </div>
 
                 <!-- Tab 1: Managers -->
                 <div id="tab-managers" class="manage-tab-content active">
-                    <div class="desc" style="margin-bottom: 1rem; color: #94a3b8; padding-left: 0;">
-                        Add an email address to grant <strong style="color: #f97316;">full management access</strong> to this society account.
+                    <div class="desc compact">
+                        Add an email address to grant <strong class="highlight-accent">full management access</strong> to this society account.
                         The owner of that email can log in and manage the society profile.
                     </div>
 
@@ -864,63 +923,6 @@ include 'includes/header.php';
                     </div>
                 </div>
 
-                <!-- Tab 2: Change Password -->
-                <div id="tab-password" class="manage-tab-content">
-                    <form method="POST" action="manage_account.php" id="changePasswordForm">
-                        <input type="hidden" name="action" value="change_password" />
-                        
-                        <div class="form-group">
-                            <label for="pwCurrentPassword"><i class="fas fa-lock"></i> Current Password</label>
-                            <input type="password" id="pwCurrentPassword" name="current_password" placeholder="Enter current society password" required />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="pwNewPassword"><i class="fas fa-pen"></i> New Password</label>
-                            <input type="password" id="pwNewPassword" name="new_password" placeholder="Create a new password" required />
-                            <span class="hint"><i class="fas fa-shield-alt"></i> Use at least 8 characters for a stronger password.</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="pwConfirmPassword"><i class="fas fa-check-double"></i> Confirm New Password</label>
-                            <input type="password" id="pwConfirmPassword" name="confirm_password" placeholder="Re-enter the new password" required />
-                        </div>
-
-                        <button type="submit" class="btn-submit" id="pwSubmitBtn">
-                            <i class="fas fa-pen-to-square"></i> Update Password
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Tab 3: Change Email -->
-                <div id="tab-email" class="manage-tab-content">
-                    <div class="desc" style="margin-bottom: 1rem; color: #94a3b8; padding-left: 0;">
-                        Current email: <strong style="color: #f97316;"><?php echo htmlspecialchars($society['email'] ?? ''); ?></strong>
-                    </div>
-
-                    <form method="POST" action="manage_account.php" id="changeEmailForm">
-                        <input type="hidden" name="action" value="change_email" />
-                        
-                        <div class="form-group">
-                            <label for="emailCurrentPassword"><i class="fas fa-lock"></i> Current Password</label>
-                            <input type="password" id="emailCurrentPassword" name="current_password" placeholder="Enter current society password" required />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="emailNewEmail"><i class="fas fa-envelope-open-text"></i> New Email</label>
-                            <input type="email" id="emailNewEmail" name="new_email" placeholder="newemail@example.com" required />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="emailConfirmEmail"><i class="fas fa-check-double"></i> Confirm New Email</label>
-                            <input type="email" id="emailConfirmEmail" name="confirm_email" placeholder="Re-enter the new email" required />
-                        </div>
-
-                        <button type="submit" class="btn-submit" id="emailSubmitBtn">
-                            <i class="fas fa-pen-to-square"></i> Update Email
-                        </button>
-                    </form>
-                </div>
-
             <!-- Back to Society Dashboard - Changed from my_profile.php to society_dashboard.php -->
             <a href="society_dashboard.php" class="back-to-profile">
                 <i class="fas fa-arrow-left"></i> Back to Society Dashboard
@@ -937,6 +939,15 @@ include 'includes/header.php';
         const tabButtons = document.querySelectorAll('.manage-tab-btn');
         const tabContents = document.querySelectorAll('.manage-tab-content');
 
+        function activateTab(tabId) {
+            tabButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+            });
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === tabId);
+            });
+        }
+
         // Manage Account button: toggle panel
         manageBtn.addEventListener('click', function() {
             const isOpen = managePanel.classList.toggle('open');
@@ -950,16 +961,26 @@ include 'includes/header.php';
         tabButtons.forEach(button => {
             button.addEventListener('click', function() {
                 const tabId = this.getAttribute('data-tab');
-                
-                // Remove active from all buttons and contents
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Add active to clicked button and corresponding content
-                this.classList.add('active');
-                document.getElementById(tabId).classList.add('active');
+
+                activateTab(tabId);
             });
         });
+
+        // Open a specific tab when requested from header dropdown links.
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedTab = urlParams.get('tab');
+        const requestedPanel = urlParams.get('panel');
+        const tabMap = {
+            managers: 'tab-managers'
+        };
+
+        if (requestedPanel === '1' || tabMap[requestedTab]) {
+            managePanel.classList.add('open');
+        }
+
+        if (tabMap[requestedTab]) {
+            activateTab(tabMap[requestedTab]);
+        }
 
         // Auto-open panel if there are any alerts (success/error)
         <?php if (!empty($success) || !empty($error)): ?>

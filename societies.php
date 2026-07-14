@@ -5,14 +5,25 @@ require_once 'config/database.php';
 
 $search = $_GET['search'] ?? '';
 
-$sql = "SELECT s.*, (SELECT COUNT(*) FROM events WHERE society_id = s.id) AS total_events
+$userId = isLoggedIn() ? getUserId() : 0;
+
+$sql = "SELECT s.*,
+        (SELECT COUNT(*) FROM events WHERE society_id = s.id) AS total_events,
+        (SELECT COUNT(*) FROM events WHERE society_id = s.id AND status = 'upcoming') AS upcoming_events,
+        (SELECT COUNT(*) FROM society_followers WHERE society_id = s.id) AS follower_count,
+        (SELECT COUNT(*) FROM society_managers WHERE society_id = s.id) AS member_count,
+        ? > 0 AND EXISTS (
+            SELECT 1 FROM society_followers sf
+            WHERE sf.society_id = s.id AND sf.user_id = ?
+        ) AS is_following
         FROM societies s
         WHERE s.status = 'verified'";
 
-$params = [];
+$params = [$userId, $userId];
 if (!empty($search)) {
-    $sql     .= " AND (s.society_name LIKE ? OR s.faculty LIKE ?)";
+    $sql     .= " AND (s.society_name LIKE ? OR s.faculty LIKE ? OR s.description LIKE ?)";
     $search_param = "$search%";// Only search for entries that start with the search term for better relevance
+    $params[] = $search_param;
     $params[] = $search_param;
     $params[] = $search_param;
 }
@@ -27,20 +38,19 @@ $societies = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <div class="events-page">
     <div class="events-page-header">
-        <h1>Student Societies</h1>
+        <h1>Societies</h1>
         <span class="events-count-badge"><?= count($societies) ?> Societ<?= count($societies) === 1 ? 'y' : 'ies' ?></span>
     </div>
 
-    <div class="filter-bar">
+    <form class="filter-bar" method="GET" action="societies.php" id="societySearchForm" novalidate>
         <div class="filter-search-wrap">
             <i class="fas fa-search search-ico"></i>
-            <input type="text" id="societySearch" placeholder="Search by name or faculty..." value="<?= htmlspecialchars($search) ?>">
+            <input type="text" id="societySearch" name="search" placeholder="Search societies by name, faculty, or about..." value="<?= htmlspecialchars($search) ?>" autocomplete="off">
+            <button type="button" id="clearSocietySearch" class="search-clear-btn<?= !empty($search) ? ' is-visible' : '' ?>" aria-label="Clear search">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <div class="filter-actions">
-            <button id="searchBtn" class="btn-filter-apply"><i class="fas fa-filter"></i> Search</button>
-            <a href="societies.php" class="btn-filter-reset"><i class="fas fa-rotate-left"></i> Reset</a>
-        </div>
-    </div>
+    </form>
 
     <?php if ($search): ?>
         <div class="active-filter-pills">
@@ -51,32 +61,120 @@ $societies = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     <?php endif; ?>
 
-    <div class="society-list" style="display:flex; flex-direction:column; gap:12px;">
+    <div class="society-grid">
         <?php if (!empty($societies)): ?>
             <?php foreach ($societies as $soc): ?>
                 <?php
+                    $societyCover = !empty($soc['cover_path']) && file_exists('assets/images/uploads/' . $soc['cover_path'])
+                        ? 'assets/images/uploads/' . htmlspecialchars($soc['cover_path'])
+                        : '';
+
                     $societyLogo = !empty($soc['logo_path']) && file_exists('assets/images/uploads/' . $soc['logo_path'])
                         ? 'assets/images/uploads/' . htmlspecialchars($soc['logo_path'])
                         : '';
+
+                    $foundedLabel = !empty($soc['founded_date'])
+                        ? date('M Y', strtotime($soc['founded_date']))
+                        : 'Not set';
+
+                    $societyAbout = trim((string)($soc['description'] ?? ''));
+                    $websiteUrl = trim((string)($soc['website_url'] ?? ''));
+                    $facebookUrl = trim((string)($soc['facebook_url'] ?? ''));
+                    $instagramUrl = trim((string)($soc['instagram_link'] ?? ''));
+
+                    $categoryLabel = trim((string)($soc['faculty'] ?? ''));
+                    if ($categoryLabel === '') {
+                        $categoryLabel = 'General';
+                    }
                 ?>
-                <div class="society-row"">
-                    <?php if ($societyLogo): ?>
-                        <img src="<?= $societyLogo ?>" class="society-row-logo" alt="<?= htmlspecialchars($soc['society_name']) ?>">
-                    <?php else: ?>
-                        <div class="society-row-logo society-row-logo-placeholder">🏛️</div>
-                    <?php endif; ?>
+                <article class="society-card" data-society-id="<?= (int) $soc['id'] ?>">
+                    <a href="society_profile.php?id=<?= (int) $soc['id'] ?>" class="society-cover-wrap">
+                        <?php if ($societyCover): ?>
+                            <img src="<?= $societyCover ?>" class="society-cover-image" alt="<?= htmlspecialchars($soc['society_name']) ?> cover">
+                        <?php elseif ($societyLogo): ?>
+                            <img src="<?= $societyLogo ?>" class="society-cover-image" alt="<?= htmlspecialchars($soc['society_name']) ?> logo">
+                        <?php else: ?>
+                            <div class="society-cover-placeholder"><i class="fas fa-users"></i></div>
+                        <?php endif; ?>
 
-                    <div class="society-row-info" style="flex:1; min-width:0; cursor:pointer;" onclick="window.location.href='society_profile.php?id=<?= (int) $soc['id'] ?>'">
-                        <h3 class="society-row-name"><?= htmlspecialchars($soc['society_name']) ?></h3>
-                        <p class="society-row-faculty"><?= htmlspecialchars($soc['faculty'] ?? 'Faculty not set') ?></p>
+                        <span class="society-category-chip"><?= htmlspecialchars($categoryLabel) ?></span>
+
+                        <?php if ($soc['status'] === 'verified'): ?>
+                            <span class="society-verified-badge"><i class="fas fa-circle-check"></i> Verified</span>
+                        <?php endif; ?>
+                    </a>
+
+                    <div class="society-card-body">
+                        <div class="society-card-header">
+                            <div class="society-logo-wrap">
+                                <?php if ($societyLogo): ?>
+                                    <img src="<?= $societyLogo ?>" class="society-logo-image" alt="<?= htmlspecialchars($soc['society_name']) ?>">
+                                <?php else: ?>
+                                    <div class="society-logo-fallback"><i class="fas fa-university"></i></div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="society-name-wrap">
+                                <h3 class="society-card-name">
+                                    <a href="society_profile.php?id=<?= (int) $soc['id'] ?>"><?= htmlspecialchars($soc['society_name']) ?></a>
+                                </h3>
+                                <p class="society-founded"><i class="fas fa-calendar-alt"></i> Established <?= htmlspecialchars($foundedLabel) ?></p>
+                            </div>
+                        </div>
+
+                        <p class="society-about"><?= $societyAbout !== '' ? htmlspecialchars($societyAbout) : 'No society description added yet.' ?></p>
+
+                        <div class="society-stats-grid">
+                            <div class="society-stat-box">
+                                <i class="fas fa-users"></i>
+                                <span class="stat-label">Followers</span>
+                                <strong class="soc-followers-count"><?= (int) $soc['follower_count'] ?></strong>
+                            </div>
+                            <div class="society-stat-box">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span class="stat-label">Events</span>
+                                <strong><?= (int) $soc['total_events'] ?></strong>
+                            </div>
+                            <div class="society-stat-box">
+                                <i class="fas fa-hourglass-half"></i>
+                                <span class="stat-label">Upcoming</span>
+                                <strong><?= (int) $soc['upcoming_events'] ?></strong>
+                            </div>
+                            <div class="society-stat-box">
+                                <i class="fas fa-user-friends"></i>
+                                <span class="stat-label">Members</span>
+                                <strong><?= (int) $soc['member_count'] ?></strong>
+                            </div>
+                        </div>
+
+                        <div class="society-card-footer">
+                            <div class="society-social-links">
+                                <?php if ($websiteUrl !== ''): ?>
+                                    <a href="<?= htmlspecialchars($websiteUrl) ?>" target="_blank" rel="noopener noreferrer" title="Website"><i class="fas fa-globe"></i></a>
+                                <?php endif; ?>
+                                <?php if ($facebookUrl !== ''): ?>
+                                    <a href="<?= htmlspecialchars($facebookUrl) ?>" target="_blank" rel="noopener noreferrer" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                                <?php endif; ?>
+                                <?php if ($instagramUrl !== ''): ?>
+                                    <a href="<?= htmlspecialchars($instagramUrl) ?>" target="_blank" rel="noopener noreferrer" title="Instagram"><i class="fab fa-instagram"></i></a>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="society-card-actions">
+                                <button
+                                    type="button"
+                                    class="soc-follow-btn<?= !empty($soc['is_following']) ? ' is-following' : '' ?>"
+                                    data-id="<?= (int) $soc['id'] ?>"
+                                >
+                                    <i class="fas <?= !empty($soc['is_following']) ? 'fa-check' : 'fa-plus' ?>"></i>
+                                    <span class="follow-label"><?= !empty($soc['is_following']) ? 'Following' : 'Follow' ?></span>
+                                </button>
+
+                                <a href="society_profile.php?id=<?= (int) $soc['id'] ?>" class="action-btn-details">View Profile <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="society-row-events" style="font-size:0.9rem; color:#B0B3B8; flex-shrink:0; white-space:nowrap;">
-                        <i class="fas fa-calendar"></i> <?= (int) $soc['total_events'] ?> Event<?= $soc['total_events'] == 1 ? '' : 's' ?>
-                    </div>
-
-                    <a href="society_profile.php?id=<?= (int) $soc['id'] ?>" class="action-btn-details">View Profile <i class="fas fa-arrow-right"></i></a>
-                </div>
+                </article>
             <?php endforeach; ?>
         <?php else: ?>
             <div class="events-empty">
@@ -88,16 +186,6 @@ $societies = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </div>
 
-<script>
-document.getElementById('searchBtn').addEventListener('click', function () {
-    let search = document.getElementById('societySearch').value;
-    window.location.href = `societies.php?search=${encodeURIComponent(search)}`;
-});
-document.getElementById('societySearch').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        document.getElementById('searchBtn').click();
-    }
-});
-</script>
+<script src="assets/js/societies.js"></script>
 
 <?php require_once 'includes/footer.php'; ?>

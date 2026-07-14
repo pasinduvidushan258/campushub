@@ -1,32 +1,28 @@
 <?php
-// my_profile.php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Load the database connection. $pdo object becomes available after this.
-require_once 'config/database.php'; 
+require_once 'config/database.php';
+require_once 'includes/function.php';
 
-// If the user is not logged in, redirect them to the login page.
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header('Location: login.php');
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
+$user_id = (int) $_SESSION['user_id'];
 $user_data = [];
 
-// Fetch the user's data from the database to display on the profile page.
 if (isset($pdo)) {
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
     $stmt->execute([$user_id]);
-    $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+    $user_data = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 }
 
-// Use null coalescing operator to provide default values if any field is missing in the database.
 $fullname = htmlspecialchars($user_data['fullname'] ?? 'User Name');
 $email = htmlspecialchars($user_data['email'] ?? 'No Email');
-$category = htmlspecialchars($user_data['category'] ?? 'student'); // student or lecturer
+$category = htmlspecialchars($user_data['category'] ?? 'student');
 
 $tagline = htmlspecialchars($user_data['tagline'] ?? 'Welcome to CampusHub!');
 $location = htmlspecialchars($user_data['location'] ?? 'Not specified');
@@ -43,42 +39,57 @@ $has_cover = !empty($db_cover) && $db_cover !== 'assets/images/default_cover.png
 $avatar_url = $has_avatar ? '/campushub/' . htmlspecialchars($db_avatar) : '';
 $cover_url = $has_cover ? '/campushub/' . htmlspecialchars($db_cover) : '';
 
-// Pull the user's saved events here too, so "Saved" is consistently available
-// across the system (header dropdown, saved_events.php, and the profile page).
 $saved_events_preview = [];
 if (isset($pdo)) {
-    $savedStmt = $pdo->prepare("
-        SELECT e.*, s.society_name,
-            (SELECT COUNT(*) FROM saved_events WHERE event_id = e.id) AS saves_count
+    $savedStmt = $pdo->prepare(
+        "SELECT e.*, s.society_name,
+            (SELECT COUNT(*) FROM event_likes WHERE event_id = e.id) AS likes_count,
+            (SELECT COUNT(*) FROM saved_events WHERE event_id = e.id) AS saves_count,
+            EXISTS(
+                SELECT 1 FROM event_likes el
+                WHERE el.event_id = e.id AND el.user_id = ?
+            ) AS is_liked,
+            EXISTS(
+                SELECT 1 FROM saved_events se2
+                WHERE se2.event_id = e.id AND se2.user_id = ?
+            ) AS is_saved
         FROM saved_events se
         JOIN events e ON se.event_id = e.id
         JOIN societies s ON e.society_id = s.id
         WHERE se.user_id = ?
         ORDER BY se.created_at DESC
-        LIMIT 6
-    ");
-    $savedStmt->execute([$user_id]);
+        LIMIT 6"
+    );
+    $savedStmt->execute([$user_id, $user_id, $user_id]);
     $saved_events_preview = $savedStmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// includes the header bar
-include 'includes/header.php'; 
+$followed_societies = [];
+if (isset($pdo)) {
+    $followedStmt = $pdo->prepare(
+        "SELECT s.*,
+            (SELECT COUNT(*) FROM events WHERE society_id = s.id) AS total_events,
+            (SELECT COUNT(*) FROM events WHERE society_id = s.id AND status = 'upcoming') AS upcoming_events,
+            (SELECT COUNT(*) FROM society_followers WHERE society_id = s.id) AS follower_count,
+            (SELECT COUNT(*) FROM society_managers WHERE society_id = s.id) AS member_count
+        FROM society_followers sf
+        JOIN societies s ON sf.society_id = s.id
+        WHERE sf.user_id = ? AND s.status = 'verified'
+        ORDER BY sf.id DESC
+        LIMIT 6"
+    );
+    $followedStmt->execute([$user_id]);
+    $followed_societies = $followedStmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+include 'includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - CampusHub</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/profile.css">
-</head>
-<body>
+<link rel="stylesheet" href="assets/css/event.css">
+<link rel="stylesheet" href="assets/css/profile.css">
 
-<div class="profile-container">
-    
+<div class="profile-container premium-profile">
+
     <div class="profile-header">
         <form action="update_photo.php" method="POST" enctype="multipart/form-data" id="coverForm" style="display: none;">
             <input type="hidden" name="photo_type" value="cover">
@@ -88,12 +99,12 @@ include 'includes/header.php';
         <?php if ($has_cover): ?>
             <div class="profile-cover" style="background-image: url('<?php echo $cover_url; ?>'); background-size: cover; background-position: center;">
         <?php else: ?>
-            <div class="profile-cover" style="background-color: #3a3b3c; display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-image" style="font-size: 3rem; color: #b0b3b8; opacity: 0.5;"></i>
+            <div class="profile-cover profile-cover-placeholder">
+                <i class="fas fa-image"></i>
         <?php endif; ?>
-            <button class="edit-cover-btn" onclick="document.getElementById('coverUpload').click();"><i class="fas fa-camera"></i> Edit Cover</button>
-        </div>
-        
+                <button class="edit-cover-btn" onclick="document.getElementById('coverUpload').click();"><i class="fas fa-camera"></i> Edit Cover</button>
+            </div>
+
         <div class="profile-info-section">
             <form action="update_photo.php" method="POST" enctype="multipart/form-data" id="avatarForm" style="display: none;">
                 <input type="hidden" name="photo_type" value="avatar">
@@ -104,31 +115,31 @@ include 'includes/header.php';
                 <?php if ($has_avatar): ?>
                     <img src="<?php echo $avatar_url; ?>" alt="Profile" class="profile-avatar-img">
                 <?php else: ?>
-                    <div class="profile-avatar-img" style="display: flex; align-items: center; justify-content: center; background: #242526; font-size: 4rem; color: #b0b3b8;">
+                    <div class="profile-avatar-img profile-avatar-placeholder">
                         <i class="fas fa-user"></i>
                     </div>
                 <?php endif; ?>
-                <button class="edit-avatar-btn" onclick="document.getElementById('avatarUpload').click();"><i class="fas fa-camera"></i></button>
+                <button class="edit-avatar-btn" onclick="document.getElementById('avatarUpload').click();" aria-label="Edit profile photo"><i class="fas fa-camera"></i></button>
             </div>
-            
+
             <div class="profile-details">
                 <h1 class="profile-name">
-                    <?php echo $fullname; ?> 
-                    <?php if($category === 'lecturer'): ?>
-                        <i class="fas fa-check-circle" style="color: #3b82f6; font-size: 1.1rem; margin-left: 5px;" title="Lecturer"></i>
+                    <?php echo $fullname; ?>
+                    <?php if ($category === 'lecturer'): ?>
+                        <i class="fas fa-check-circle lecturer-badge" title="Lecturer"></i>
                     <?php endif; ?>
                 </h1>
                 <p class="profile-tagline"><?php echo $tagline; ?></p>
-                <p class="profile-university">
-                    <i class="fas fa-university"></i> <?php echo $university; ?>
-                    <?php if($location !== 'Not specified'): ?>
-                        <span style="color: #b0b3b8; margin-left: 10px;"><i class="fas fa-map-marker-alt"></i> <?php echo $location; ?></span>
+                <div class="profile-meta-row">
+                    <span><i class="fas fa-university"></i> <?php echo $university; ?></span>
+                    <?php if ($location !== 'Not specified'): ?>
+                        <span><i class="fas fa-map-marker-alt"></i> <?php echo $location; ?></span>
                     <?php endif; ?>
-                </p>
+                </div>
             </div>
-            
+
             <div class="profile-actions">
-                <button class="btn-primary" onclick="openEditModal()"><i class="fas fa-edit"></i> Edit Profile</button>
+                <button class="btn-primary" onclick="openEditModal()"><i class="fas fa-pen-to-square"></i> Edit Profile</button>
             </div>
         </div>
     </div>
@@ -136,85 +147,233 @@ include 'includes/header.php';
     <div class="profile-tabs-container">
         <button class="profile-tab active" onclick="openTab(event, 'about')">About</button>
         <button class="profile-tab" onclick="openTab(event, 'saved')">Saved Events</button>
-        <button class="profile-tab" onclick="openTab(event, 'societies')">Societies</button>
+        <button class="profile-tab" onclick="openTab(event, 'societies')">Followed Societies</button>
     </div>
 
     <div class="profile-content">
-        
-        <div id="about" class="tab-pane active">
-            <div class="info-card">
-                <h3><i class="fas fa-user"></i> Personal Information</h3>
-                <ul class="info-list">
-                    <li><strong>Full Name:</strong> <?php echo $fullname; ?></li>
-                    <li><strong>Email:</strong> <?php echo $email; ?></li>
-                    <li><strong>Location:</strong> <?php echo $location; ?></li>
-                    <li><strong>Account Type:</strong> <span style="text-transform: capitalize; color: #F97316; font-weight: 600;"><?php echo $category; ?></span></li>
-                </ul>
-            </div>
 
-            <div class="info-card">
-                <h3><i class="fas fa-graduation-cap"></i> Academic Background</h3>
-                <ul class="info-list">
-                    <?php if ($category === 'student'): ?>
-                        <li><strong>University:</strong> <?php echo $university; ?></li>
-                        <li><strong>School:</strong> <?php echo $school; ?></li>
-                        <?php if (!empty($qualifications)): ?>
-                            <li><strong>Degree:</strong> <?php echo $qualifications; ?></li>
+        <div id="about" class="tab-pane active">
+            <div class="about-grid">
+                <div class="info-card">
+                    <h3><i class="fas fa-id-card"></i> Personal Information</h3>
+                    <ul class="info-list">
+                        <li><strong>Full Name</strong><span><?php echo $fullname; ?></span></li>
+                        <li><strong>Email</strong><span><?php echo $email; ?></span></li>
+                        <li><strong>Location</strong><span><?php echo $location; ?></span></li>
+                        <li><strong>Account Type</strong><span class="highlight"><?php echo ucfirst($category); ?></span></li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-graduation-cap"></i> Academic Background</h3>
+                    <ul class="info-list">
+                        <?php if ($category === 'student'): ?>
+                            <li><strong>Degree / Program</strong><span><?php echo !empty($qualifications) ? $qualifications : 'Not specified'; ?></span></li>
+                            <li><strong>School</strong><span><?php echo $school; ?></span></li>
+                            <li><strong>University</strong><span><?php echo $university; ?></span></li>
+                        <?php else: ?>
+                            <li><strong>Qualifications</strong><span><?php echo !empty($qualifications) ? $qualifications : 'Not specified'; ?></span></li>
+                            <li><strong>Institution</strong><span><?php echo $university; ?></span></li>
                         <?php endif; ?>
-                    <?php elseif ($category === 'lecturer'): ?>
-                        <li><strong>Institution:</strong> <?php echo $university; ?></li>
-                        <li><strong>Qualifications:</strong> <?php echo !empty($qualifications) ? $qualifications : 'Not specified'; ?></li>
-                    <?php endif; ?>
-                </ul>
+                    </ul>
+                </div>
             </div>
         </div>
 
         <div id="saved" class="tab-pane">
             <?php if (empty($saved_events_preview)): ?>
-                <div class="info-card" style="text-align: center; padding: 40px 25px;">
-                    <i class="fas fa-bookmark" style="font-size: 2.2rem; color: #F97316; opacity: 0.6; margin-bottom: 12px; display: block;"></i>
-                    <h3 style="margin: 0 0 8px; color: #E4E6EB;">No saved events yet</h3>
-                    <p style="margin: 0 0 18px; color: #b0b3b8;">Click the bookmark icon on any event to save it for quick access.</p>
-                    <a href="events.php" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">Explore Events</a>
+                <div class="events-empty profile-empty-state">
+                    <i class="fas fa-bookmark"></i>
+                    <h3>No saved events yet</h3>
+                    <p>Bookmark events to keep them ready for quick access from your profile.</p>
+                    <a href="events.php" class="action-btn-details">Explore Events</a>
                 </div>
             <?php else: ?>
-                <div class="society-grid">
-                    <?php foreach ($saved_events_preview as $sevent): ?>
-                        <a href="event_details.php?id=<?= $sevent['id'] ?>" class="society-card" style="text-align: left; text-decoration: none; display: block;">
-                            <h4 style="margin-bottom: 8px;"><?= htmlspecialchars($sevent['title']) ?></h4>
-                            <p><i class="fas fa-users"></i> <?= htmlspecialchars($sevent['society_name']) ?></p>
-                            <p><i class="fas fa-calendar"></i> <?= date('d M Y', strtotime($sevent['event_date'])) ?></p>
-                        </a>
+                <div class="section-intro">
+                    <h3>Saved Events </h3>
+                </div>
+                <div class="events-grid profile-events-grid">
+                    <?php foreach ($saved_events_preview as $event): ?>
+                        <?php
+                            $eventPoster = !empty($event['poster_path']) && file_exists('assets/images/events/' . $event['poster_path'])
+                                ? 'assets/images/events/' . htmlspecialchars($event['poster_path'])
+                                : '';
+                            $statusValue = strtolower((string) ($event['status'] ?? 'upcoming'));
+                            if (!in_array($statusValue, ['upcoming', 'ongoing', 'completed'], true)) {
+                                $statusValue = 'upcoming';
+                            }
+                        ?>
+                        <article class="event-card saved-event-card profile-event-card">
+                            <div class="event-poster-wrap">
+                                <?php if ($eventPoster): ?>
+                                    <img src="<?= $eventPoster ?>" alt="<?= htmlspecialchars($event['title']) ?>">
+                                <?php else: ?>
+                                    <div class="event-poster-placeholder">
+                                        <i class="fas fa-image"></i>
+                                        <span>No Flyer</span>
+                                    </div>
+                                <?php endif; ?>
+                                <span class="event-status-badge badge-<?= htmlspecialchars($statusValue) ?>"><?= ucfirst($statusValue) ?></span>
+                                <span class="event-category-chip"><?= htmlspecialchars($event['category'] ?? 'General') ?></span>
+                            </div>
+
+                            <div class="event-body">
+                                <h3 class="event-title"><?= htmlspecialchars($event['title']) ?></h3>
+                                <div class="event-meta">
+                                    <div class="event-meta-row">
+                                        <i class="fas fa-users"></i>
+                                        <a href="society_profile.php?id=<?= (int) $event['society_id'] ?>" class="society-link"><?= htmlspecialchars($event['society_name']) ?></a>
+                                    </div>
+                                    <div class="event-meta-row"><i class="fas fa-calendar"></i> <?= date('d M Y', strtotime($event['event_date'])) ?> at <?= date('h:i A', strtotime($event['start_time'])) ?></div>
+                                    <div class="event-meta-row"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($event['venue'] ?? 'Venue to be announced') ?></div>
+                                </div>
+
+                                <div class="event-footer">
+                                    <button class="action-btn like-btn <?= !empty($event['is_liked']) ? 'liked' : '' ?>" data-id="<?= (int) $event['id'] ?>">
+                                        <i class="fas fa-heart"></i> <span class="likes-count"><?= (int) $event['likes_count'] ?></span>
+                                    </button>
+                                    <button class="action-btn save-btn <?= !empty($event['is_saved']) ? 'saved' : '' ?>" data-id="<?= (int) $event['id'] ?>">
+                                        <i class="fas fa-bookmark"></i> <span class="saves-count"><?= (int) $event['saves_count'] ?></span>
+                                    </button>
+                                    <a href="event_details.php?id=<?= (int) $event['id'] ?>" class="action-btn-details">View Details</a>
+                                </div>
+                            </div>
+                        </article>
                     <?php endforeach; ?>
                 </div>
-                <div style="margin-top: 18px; text-align: center;">
-                    <a href="saved_events.php" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">View All Saved Events</a>
+                <div class="section-cta-wrap">
+                    <a href="saved_events.php" class="btn-primary section-cta"><i class="fas fa-arrow-right"></i> View All Saved Events</a>
                 </div>
             <?php endif; ?>
         </div>
 
         <div id="societies" class="tab-pane">
-            <div class="society-grid">
-                <div class="society-card">
-                    <div class="soc-icon"><i class="fas fa-laptop-code"></i></div>
-                    <h4>Computer Science Society</h4>
-                    <p>Member</p>
+            <?php if (empty($followed_societies)): ?>
+                <div class="events-empty profile-empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>No followed societies yet</h3>
+                    <p>Follow societies to see their updates and activity highlights here.</p>
+                    <a href="societies.php" class="action-btn-details">Explore Societies</a>
                 </div>
-            </div>
+            <?php else: ?>
+                <div class="section-intro">
+                    <h3>Communities You Follow</h3>
+                </div>
+
+                <div class="society-grid profile-society-grid">
+                    <?php foreach ($followed_societies as $soc): ?>
+                        <?php
+                            $societyCover = !empty($soc['cover_path']) && file_exists('assets/images/uploads/' . $soc['cover_path'])
+                                ? 'assets/images/uploads/' . htmlspecialchars($soc['cover_path'])
+                                : '';
+
+                            $societyLogo = !empty($soc['logo_path']) && file_exists('assets/images/uploads/' . $soc['logo_path'])
+                                ? 'assets/images/uploads/' . htmlspecialchars($soc['logo_path'])
+                                : '';
+
+                            $societyAbout = trim((string) ($soc['description'] ?? ''));
+                            $websiteUrl = trim((string) ($soc['website_url'] ?? ''));
+                            $facebookUrl = trim((string) ($soc['facebook_url'] ?? ''));
+                            $instagramUrl = trim((string) ($soc['instagram_link'] ?? ''));
+
+                            $categoryLabel = trim((string) ($soc['faculty'] ?? ''));
+                            if ($categoryLabel === '') {
+                                $categoryLabel = 'General';
+                            }
+                        ?>
+                        <article class="society-card" data-society-id="<?= (int) $soc['id'] ?>">
+                            <a href="society_profile.php?id=<?= (int) $soc['id'] ?>" class="society-cover-wrap">
+                                <?php if ($societyCover): ?>
+                                    <img src="<?= $societyCover ?>" class="society-cover-image" alt="<?= htmlspecialchars($soc['society_name']) ?> cover">
+                                <?php elseif ($societyLogo): ?>
+                                    <img src="<?= $societyLogo ?>" class="society-cover-image" alt="<?= htmlspecialchars($soc['society_name']) ?> logo">
+                                <?php else: ?>
+                                    <div class="society-cover-placeholder"><i class="fas fa-users"></i></div>
+                                <?php endif; ?>
+
+                                <span class="society-category-chip"><?= htmlspecialchars($categoryLabel) ?></span>
+                                <span class="society-verified-badge"><i class="fas fa-circle-check"></i> Verified</span>
+                            </a>
+
+                            <div class="society-card-body">
+                                <div class="society-card-header">
+                                    <div class="society-logo-wrap">
+                                        <?php if ($societyLogo): ?>
+                                            <img src="<?= $societyLogo ?>" class="society-logo-image" alt="<?= htmlspecialchars($soc['society_name']) ?>">
+                                        <?php else: ?>
+                                            <div class="society-logo-fallback"><i class="fas fa-university"></i></div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="society-name-wrap">
+                                        <h3 class="society-card-name">
+                                            <a href="society_profile.php?id=<?= (int) $soc['id'] ?>"><?= htmlspecialchars($soc['society_name']) ?></a>
+                                        </h3>
+                                        <p class="society-founded"><i class="fas fa-calendar-alt"></i> Active community</p>
+                                    </div>
+                                </div>
+
+                                <p class="society-about"><?= $societyAbout !== '' ? htmlspecialchars($societyAbout) : 'No society description added yet.' ?></p>
+
+                                <div class="society-stats-grid compact-stats">
+                                    <div class="society-stat-box">
+                                        <i class="fas fa-users"></i>
+                                        <span class="stat-label">Followers</span>
+                                        <strong class="soc-followers-count"><?= (int) $soc['follower_count'] ?></strong>
+                                    </div>
+                                    <div class="society-stat-box">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span class="stat-label">Events</span>
+                                        <strong><?= (int) $soc['total_events'] ?></strong>
+                                    </div>
+                                </div>
+
+                                <div class="society-card-footer">
+                                    <div class="society-social-links">
+                                        <?php if ($websiteUrl !== ''): ?>
+                                            <a href="<?= htmlspecialchars($websiteUrl) ?>" target="_blank" rel="noopener noreferrer" title="Website"><i class="fas fa-globe"></i></a>
+                                        <?php endif; ?>
+                                        <?php if ($facebookUrl !== ''): ?>
+                                            <a href="<?= htmlspecialchars($facebookUrl) ?>" target="_blank" rel="noopener noreferrer" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                                        <?php endif; ?>
+                                        <?php if ($instagramUrl !== ''): ?>
+                                            <a href="<?= htmlspecialchars($instagramUrl) ?>" target="_blank" rel="noopener noreferrer" title="Instagram"><i class="fab fa-instagram"></i></a>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="society-card-actions">
+                                        <button
+                                            type="button"
+                                            class="soc-follow-btn is-following"
+                                            data-id="<?= (int) $soc['id'] ?>"
+                                        >
+                                            <i class="fas fa-check"></i>
+                                            <span class="follow-label">Following</span>
+                                        </button>
+                                        <a href="society_profile.php?id=<?= (int) $soc['id'] ?>" class="action-btn-details">View Profile <i class="fas fa-arrow-right"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+                <div class="section-cta-wrap">
+                    <a href="societies.php" class="btn-primary section-cta"><i class="fas fa-arrow-right"></i> View More Societies</a>
+                </div>
+            <?php endif; ?>
         </div>
 
     </div>
 </div>
 
-<div id="editProfileModal" class="modal-overlay">
-    <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+<div id="editProfileModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content">
         <div class="modal-header">
             <h2><i class="fas fa-user-edit"></i> Edit Profile</h2>
-            <button class="close-modal-btn" onclick="closeEditModal()">&times;</button>
+            <button class="close-modal-btn" onclick="closeEditModal()" aria-label="Close modal">&times;</button>
         </div>
-        
+
         <form action="update_profile.php" method="POST" class="edit-profile-form">
-            
             <div class="form-group">
                 <label>Full Name</label>
                 <input type="text" name="fullname" value="<?php echo $fullname; ?>" required>
@@ -230,11 +389,6 @@ include 'includes/header.php';
                 <input type="text" name="location" value="<?php echo $location !== 'Not specified' ? $location : ''; ?>" placeholder="e.g. Colombo, Sri Lanka">
             </div>
 
-            <div class="form-group">
-                <label>University / Institution</label>
-                <input type="text" name="university" value="<?php echo $university !== 'Not specified' ? $university : ''; ?>">
-            </div>
-
             <?php if ($category === 'student'): ?>
                 <div class="form-group">
                     <label>School</label>
@@ -244,7 +398,7 @@ include 'includes/header.php';
                     <label>Degree / Program</label>
                     <input type="text" name="qualifications" value="<?php echo $qualifications; ?>" placeholder="e.g. BSc in Computer Science">
                 </div>
-            <?php elseif ($category === 'lecturer'): ?>
+            <?php else: ?>
                 <div class="form-group">
                     <label>Qualifications</label>
                     <input type="text" name="qualifications" value="<?php echo $qualifications; ?>" placeholder="e.g. PhD, MSc in Software Engineering">
@@ -260,39 +414,53 @@ include 'includes/header.php';
 </div>
 
 <script>
-// Tab Switching Logic
 function openTab(evt, tabName) {
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tab-pane");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-        tabcontent[i].classList.remove("active");
+    const tabContent = document.getElementsByClassName('tab-pane');
+    const tabLinks = document.getElementsByClassName('profile-tab');
+
+    for (let i = 0; i < tabContent.length; i++) {
+        tabContent[i].style.display = 'none';
+        tabContent[i].classList.remove('active');
     }
-    tablinks = document.getElementsByClassName("profile-tab");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
+
+    for (let i = 0; i < tabLinks.length; i++) {
+        tabLinks[i].classList.remove('active');
     }
-    document.getElementById(tabName).style.display = "block";
-    document.getElementById(tabName).classList.add("active");
-    evt.currentTarget.className += " active";
+
+    const nextPane = document.getElementById(tabName);
+    if (nextPane) {
+        nextPane.style.display = 'block';
+        nextPane.classList.add('active');
+    }
+
+    if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add('active');
+    }
 }
 
-// Modal Open/Close Logic
 function openEditModal() {
-    document.getElementById('editProfileModal').style.display = 'flex';
+    const modal = document.getElementById('editProfileModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+    }
 }
 
 function closeEditModal() {
-    document.getElementById('editProfileModal').style.display = 'none';
-}
-
-window.onclick = function(event) {
-    let modal = document.getElementById('editProfileModal');
-    if (event.target == modal) {
-        modal.style.display = "none";
+    const modal = document.getElementById('editProfileModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
     }
 }
+
+window.addEventListener('click', function (event) {
+    const modal = document.getElementById('editProfileModal');
+    if (event.target === modal) {
+        closeEditModal();
+    }
+});
 </script>
 
-</body>
-</html>
+<script src="assets/js/event.js"></script>
+<script src="assets/js/societies.js"></script>
