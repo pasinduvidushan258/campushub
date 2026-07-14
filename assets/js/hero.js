@@ -9,21 +9,38 @@ const boxTR = document.getElementById('heroBox2'); // Top Right
 const boxBL = document.getElementById('heroBox3'); // Bottom Left
 const boxBR = document.getElementById('heroBox4'); // Bottom Right
 
-function loadInitialImages() {
-    if (!boxTL || !boxTR || !boxBL || !boxBR) return;
+const heroBoxes = [boxTL, boxTR, boxBR, boxBL];
 
+function renderBoxes(startIndex = 0) {
     const totalImages = images.length;
-    if (totalImages === 0) return;
+    if (!heroBoxes.every(Boolean)) return;
 
-    boxTL.style.backgroundImage = `url('${images[0 % totalImages]}')`; // Top Left
-    boxTR.style.backgroundImage = `url('${images[1 % totalImages]}')`; // Top Right
-    boxBR.style.backgroundImage = `url('${images[2 % totalImages]}')`; // Bottom Right
-    boxBL.style.backgroundImage = `url('${images[3 % totalImages]}')`; // Bottom Left
+    if (totalImages === 0) {
+        heroBoxes.forEach((box) => {
+            box.style.backgroundImage = 'none';
+        });
+        return;
+    }
+
+    const visibleCount = Math.min(totalImages, heroBoxes.length);
+
+    heroBoxes.forEach((box, slotIndex) => {
+        if (slotIndex < visibleCount) {
+            const imageIndex = (startIndex + slotIndex) % totalImages;
+            box.style.backgroundImage = `url('${images[imageIndex]}')`;
+        } else {
+            box.style.backgroundImage = 'none';
+        }
+    });
+}
+
+function loadInitialImages() {
+    renderBoxes(0);
 }
 
 function rotateClockwise() {
     if(!boxTL || !boxTR || !boxBL || !boxBR) return;
-    if (images.length === 0) return;
+    if (images.length <= 1) return;
 
     // 1. Rotate the boxes in a clockwise direction (add slide classes to trigger CSS animations)
     boxTL.classList.add('slide-right');
@@ -35,11 +52,8 @@ function rotateClockwise() {
         // 2. Update the current index to point to the next set of images (move backwards in the array)
         currentIndex = (currentIndex - 1 + images.length) % images.length;
 
-        // 3. Load the new images into the boxes    
-        boxTL.style.backgroundImage = `url('${images[currentIndex]}')`;
-        boxTR.style.backgroundImage = `url('${images[(currentIndex + 1) % images.length]}')`;
-        boxBR.style.backgroundImage = `url('${images[(currentIndex + 2) % images.length]}')`;
-        boxBL.style.backgroundImage = `url('${images[(currentIndex + 3) % images.length]}')`;
+        // 3. Load the new images into the boxes
+        renderBoxes(currentIndex);
 
         // 4. Remove the slide classes to reset the animation state for the next rotation
         boxTL.classList.remove('slide-right');

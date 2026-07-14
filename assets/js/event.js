@@ -1,9 +1,44 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
     const categorySelect = document.getElementById('categorySelect');
     const statusSelect = document.getElementById('statusSelect');
-    const applyBtn = document.getElementById('applyFilters');
+    const eventsPage = document.querySelector('.events-page');
+    let autoSearchTimer = null;
+    let liveFilterRequestId = 0;
+    let liveFilterController = null;
+    const AUTO_SEARCH_DELAY = 350;
+    const SEARCH_PREVIEW_LIMIT = 42;
+    let fullSearchValue = searchInput ? searchInput.value : '';
+
+    function toggleClearButton() {
+        if (!clearSearchBtn) return;
+        clearSearchBtn.classList.toggle('is-visible', fullSearchValue.trim().length > 0);
+    }
+
+    function restoreFullSearchText() {
+        if (!searchInput) return;
+        if (searchInput.dataset.truncated === '1') {
+            searchInput.value = fullSearchValue;
+            searchInput.dataset.truncated = '0';
+        }
+    }
+
+    function renderTruncatedSearchText() {
+        if (!searchInput) return;
+        if (document.activeElement === searchInput) return;
+
+        if (fullSearchValue.length > SEARCH_PREVIEW_LIMIT) {
+            searchInput.value = fullSearchValue.slice(0, SEARCH_PREVIEW_LIMIT - 1) + '...';
+            searchInput.dataset.truncated = '1';
+            searchInput.title = fullSearchValue;
+        } else {
+            searchInput.value = fullSearchValue;
+            searchInput.dataset.truncated = '0';
+            searchInput.title = '';
+        }
+    }
 
     function syncSelectState(el) {
         if (!el) return;
@@ -13,15 +48,20 @@ document.addEventListener('DOMContentLoaded', function () {
     [categorySelect, statusSelect].forEach(el => {
         if (!el) return;
         syncSelectState(el);
-        el.addEventListener('change', () => syncSelectState(el));
+        el.addEventListener('change', () => {
+            syncSelectState(el);
+            applyFilters({ updateHistory: true });
+        });
     });
 
-    function applyFilters() {
+    function buildFilterParams() {
 
         const params = new URLSearchParams();
 
-        if (searchInput && searchInput.value.trim()) {
-            params.set('search', searchInput.value.trim());
+        const searchValue = fullSearchValue.trim();
+
+        if (searchValue) {
+            params.set('search', searchValue);
         }
 
         if (categorySelect && categorySelect.value) {
@@ -32,18 +72,152 @@ document.addEventListener('DOMContentLoaded', function () {
             params.set('status', statusSelect.value);
         }
 
-        window.location.href = 'events.php?' + params.toString();
+        return params;
     }
 
-    if (applyBtn) {
-        applyBtn.addEventListener('click', applyFilters);
+    function updateActivePills(doc) {
+        if (!eventsPage) return;
+
+        const currentPills = eventsPage.querySelector('.active-filter-pills');
+        const nextPills = doc.querySelector('.events-page .active-filter-pills');
+        const filterBar = eventsPage.querySelector('.filter-bar');
+
+        if (currentPills && !nextPills) {
+            currentPills.remove();
+            return;
+        }
+
+        if (!currentPills && nextPills && filterBar) {
+            filterBar.insertAdjacentElement('afterend', nextPills.cloneNode(true));
+            return;
+        }
+
+        if (currentPills && nextPills) {
+            currentPills.outerHTML = nextPills.outerHTML;
+        }
+    }
+
+    function renderFilteredPage(doc) {
+        if (!eventsPage) return;
+
+        const currentGrid = eventsPage.querySelector('.events-grid');
+        const nextGrid = doc.querySelector('.events-page .events-grid');
+        const currentCount = eventsPage.querySelector('.events-count-badge');
+        const nextCount = doc.querySelector('.events-page .events-count-badge');
+
+        if (currentGrid && nextGrid) {
+            currentGrid.innerHTML = nextGrid.innerHTML;
+        }
+
+        if (currentCount && nextCount) {
+            currentCount.textContent = nextCount.textContent;
+        }
+
+        updateActivePills(doc);
+    }
+
+    async function applyFilters(options = {}) {
+        if (!eventsPage) return;
+
+        const { updateHistory = true } = options;
+        const params = buildFilterParams();
+        const queryString = params.toString();
+        const nextUrl = 'events.php' + (queryString ? '?' + queryString : '');
+        const requestId = ++liveFilterRequestId;
+
+        if (liveFilterController) {
+            liveFilterController.abort();
+        }
+        liveFilterController = new AbortController();
+
+        try {
+            const response = await fetch(nextUrl, {
+                signal: liveFilterController.signal,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load events');
+            }
+
+            const html = await response.text();
+
+            if (requestId !== liveFilterRequestId) {
+                return;
+            }
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            renderFilteredPage(doc);
+
+            if (updateHistory) {
+                history.replaceState({}, '', nextUrl);
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('[events] Live filter failed:', err);
+            }
+        }
+
+        renderTruncatedSearchText();
+    }
+
+    function queueAutoSearch() {
+        if (autoSearchTimer) {
+            clearTimeout(autoSearchTimer);
+        }
+        autoSearchTimer = setTimeout(() => {
+            applyFilters({ updateHistory: true });
+        }, AUTO_SEARCH_DELAY);
     }
 
     if (searchInput) {
+        toggleClearButton();
+        renderTruncatedSearchText();
+
+        searchInput.addEventListener('focus', function () {
+            restoreFullSearchText();
+        });
+
+        searchInput.addEventListener('blur', function () {
+            renderTruncatedSearchText();
+        });
+
+        searchInput.addEventListener('input', function () {
+            fullSearchValue = this.value;
+            toggleClearButton();
+            queueAutoSearch();
+        });
+
         searchInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
-                applyFilters();
+                e.preventDefault();
+                applyFilters({ updateHistory: true });
             }
+        });
+    }
+
+    if (clearSearchBtn && searchInput) {
+        clearSearchBtn.addEventListener('click', function () {
+            if (autoSearchTimer) {
+                clearTimeout(autoSearchTimer);
+            }
+
+            fullSearchValue = '';
+            searchInput.value = '';
+            searchInput.dataset.truncated = '0';
+            searchInput.title = '';
+            toggleClearButton();
+            searchInput.focus();
+
+            const suggestionBox = document.getElementById('searchSuggestions');
+            if (suggestionBox) {
+                suggestionBox.style.display = 'none';
+            }
+
+            applyFilters({ updateHistory: true });
         });
     }
 
@@ -70,12 +244,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     suggestionBox.innerHTML = '';
 
-                    if (!events.length) {
+                    const limitedEvents = Array.isArray(events) ? events.slice(0, 6) : [];
+
+                    if (!limitedEvents.length) {
                         suggestionBox.style.display = 'none';
                         return;
                     }
 
-                    events.forEach(event => {
+                    limitedEvents.forEach(event => {
 
                         const item = document.createElement('div');
 
@@ -100,6 +276,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         });
 
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                suggestionBox.style.display = 'none';
+            }
+        });
+
         document.addEventListener('click', function (e) {
 
             if (
@@ -108,6 +290,37 @@ document.addEventListener('DOMContentLoaded', function () {
             ) {
                 suggestionBox.style.display = 'none';
             }
+        });
+    }
+
+    if (eventsPage) {
+        eventsPage.addEventListener('click', function (e) {
+            const pillLink = e.target.closest('.active-filter-pills a');
+            if (!pillLink) return;
+
+            e.preventDefault();
+            const url = new URL(pillLink.href, window.location.origin);
+            const nextParams = url.searchParams;
+
+            fullSearchValue = nextParams.get('search') || '';
+
+            if (searchInput) {
+                searchInput.value = fullSearchValue;
+                searchInput.dataset.truncated = '0';
+            }
+
+            if (categorySelect) {
+                categorySelect.value = nextParams.get('category') || '';
+                syncSelectState(categorySelect);
+            }
+
+            if (statusSelect) {
+                statusSelect.value = nextParams.get('status') || '';
+                syncSelectState(statusSelect);
+            }
+
+            toggleClearButton();
+            applyFilters({ updateHistory: true });
         });
     }
 
@@ -192,14 +405,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    document.querySelectorAll('.like-btn').forEach(btn => {
-
-        btn.addEventListener('click', function () {
-            handleLike(this);
-        });
-
-    });
-
     // ===========================
     // Save Event
     // ===========================
@@ -280,12 +485,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    document.querySelectorAll('.save-btn').forEach(btn => {
+    document.addEventListener('click', function (e) {
+        const likeBtn = e.target.closest('.like-btn');
+        if (likeBtn) {
+            e.preventDefault();
+            handleLike(likeBtn);
+            return;
+        }
 
-        btn.addEventListener('click', function () {
-            handleSave(this);
-        });
-
+        const saveBtn = e.target.closest('.save-btn');
+        if (saveBtn) {
+            e.preventDefault();
+            handleSave(saveBtn);
+        }
     });
 
 });

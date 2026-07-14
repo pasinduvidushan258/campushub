@@ -70,7 +70,7 @@ $latestEvents = $latestEventsStmt->fetchAll(PDO::FETCH_ASSOC);
                             <div class="event-body">
                                 <h3 class="event-title"><?= htmlspecialchars($event['title']) ?></h3>
                                 <div class="event-meta">
-                                    <div class="event-meta-row"><i class="fas fa-users"></i><a href="society_profile.php?id=<?= $event['society_id'] ?>" class="action-btn-details"><?= htmlspecialchars($event['society_name']) ?></a></div>
+                                    <div class="event-meta-row"><i class="fas fa-users"></i><a href="society_profile.php?id=<?= $event['society_id'] ?>" class="society-link"><?= htmlspecialchars($event['society_name']) ?></a></div>
                                     <div class="event-meta-row"><i class="fas fa-calendar"></i> <?= date('d M Y', strtotime($event['event_date'])) ?> at <?= date('h:i A', strtotime($event['start_time'])) ?></div>
                                     <div class="event-meta-row"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($event['venue']) ?></div>
                                 </div>
