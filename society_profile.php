@@ -137,6 +137,8 @@ include 'includes/header.php';
                         <i class="fas <?= $isFollowing ? 'fa-check' : 'fa-plus' ?>"></i>
                         <span class="follow-text"><?= $isFollowing ? 'Following' : 'Follow' ?></span>
                     </button>
+                    <button type="button" class="btn-secondary" onclick="requestMembership(<?= $society_id ?>)"><i class="fas fa-user-plus"></i> Request Membership</button>
+                    <button type="button" class="btn-secondary" onclick="reportSociety(<?= $society_id ?>)"><i class="fas fa-flag"></i> Report</button>
                 <?php else: ?>
                     <a href="login.php" class="btn-primary"><i class="fas fa-sign-in-alt"></i> Log in to Follow</a>
                 <?php endif; ?>
@@ -326,6 +328,50 @@ function toggleFollow(btn) {
     .catch(() => {
         btn.disabled = false;
         alert('Network error. Please try again.');
+    });
+}
+
+function requestMembership(societyId) {
+    const body = 'society_id=' + encodeURIComponent(String(societyId));
+    fetch('request_society_membership.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || (data.success ? 'Membership request sent.' : 'Request failed.'));
+    })
+    .catch(() => {
+        alert('Unable to send membership request right now.');
+    });
+}
+
+function reportSociety(societyId) {
+    const reason = prompt('Reason for report (required):');
+    if (!reason || !reason.trim()) {
+        return;
+    }
+    const details = prompt('Additional details (optional):') || '';
+
+    const params = new URLSearchParams();
+    params.append('society_id', String(societyId));
+    params.append('reason', reason.trim());
+    if (details.trim()) {
+        params.append('details', details.trim());
+    }
+
+    fetch('report_society.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || (data.success ? 'Report submitted.' : 'Report failed.'));
+    })
+    .catch(() => {
+        alert('Unable to submit report right now.');
     });
 }
 </script>

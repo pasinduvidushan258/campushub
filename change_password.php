@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once 'config/database.php';
 require_once 'includes/security_email.php';
+require_once 'includes/notification_helpers.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -53,6 +54,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $update_stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
             if ($update_stmt->execute([$hashed_password, $user_id])) {
                 $success = 'Password changed successfully!';
+
+                campushub_notify_user($pdo, [
+                    'recipient_user_id' => $user_id,
+                    'actor_user_id' => $user_id,
+                    'type' => 'account_password_changed',
+                    'title' => 'Your password was changed',
+                    'message' => 'Your CampusHub password was updated successfully.',
+                    'entity_type' => 'account',
+                    'entity_id' => $user_id,
+                    'link_url' => 'change_password.php',
+                    'dedupe_key' => 'password-change:' . $user_id . ':' . date('YmdHis'),
+                ]);
+
                 // Refresh current user data
                 $stmt = $pdo->prepare("SELECT email, password FROM users WHERE id = ?");
                 $stmt->execute([$user_id]);

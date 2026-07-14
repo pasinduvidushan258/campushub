@@ -2,6 +2,7 @@
 // follow_society.php
 session_start();
 require_once 'config/database.php';
+require_once 'includes/notification_helpers.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['user_id'])) {
@@ -38,11 +39,61 @@ if ($existing) {
     $stmt = $pdo->prepare("INSERT INTO society_followers (society_id, user_id) VALUES (?, ?)");
     $stmt->execute([$society_id, $user_id]);
     $following = true;
+
+    try {
+        $societyStmt = $pdo->prepare("SELECT admin_id, society_name FROM societies WHERE id = ? LIMIT 1");
+        $societyStmt->execute([$society_id]);
+        $societyData = $societyStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($societyData && (int) $societyData['admin_id'] !== $user_id) {
+            campushub_notify_user($pdo, [
+                'recipient_user_id' => (int) $societyData['admin_id'],
+                'actor_user_id' => $user_id,
+                'actor_society_id' => $society_id,
+                'type' => 'society_followed',
+                'title' => 'Someone followed your society',
+                'message' => 'A user started following ' . (string) ($societyData['society_name'] ?? 'your society') . '.',
+                'entity_type' => 'society',
+                'entity_id' => $society_id,
+                'link_url' => 'society_profile.php?id=' . $society_id,
+                'dedupe_key' => 'soc-follow:' . $society_id . ':' . $user_id,
+            ]);
+        }
+    } catch (Throwable $e) {
+        // Keep follow endpoint resilient.
+    }
 }
 
 $countStmt = $pdo->prepare("SELECT COUNT(*) FROM society_followers WHERE society_id = ?");
 $countStmt->execute([$society_id]);
 $followers = (int) $countStmt->fetchColumn();
+
+if ($following) {
+    $milestones = [10, 25, 50, 100, 250, 500, 1000];
+    if (in_array($followers, $milestones, true)) {
+        try {
+            $societyMetaStmt = $pdo->prepare("SELECT admin_id, society_name FROM societies WHERE id = ? LIMIT 1");
+            $societyMetaStmt->execute([$society_id]);
+            $societyMeta = $societyMetaStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($societyMeta && (int) $societyMeta['admin_id'] > 0) {
+                campushub_notify_user($pdo, [
+                    'recipient_user_id' => (int) $societyMeta['admin_id'],
+                    'actor_society_id' => $society_id,
+                    'type' => 'society_follower_milestone',
+                    'title' => 'Society reached follower milestone',
+                    'message' => (string) ($societyMeta['society_name'] ?? 'Your society') . ' reached ' . $followers . ' followers.',
+                    'entity_type' => 'society',
+                    'entity_id' => $society_id,
+                    'link_url' => 'society_profile.php?id=' . $society_id,
+                    'dedupe_key' => 'society-milestone:' . $society_id . ':' . $followers,
+                ]);
+            }
+        } catch (Throwable $e) {
+            // Keep follow endpoint resilient even if milestone notify fails.
+        }
+    }
+}
 
 echo json_encode(['success' => true, 'following' => $following, 'followers' => $followers]);
 exit();

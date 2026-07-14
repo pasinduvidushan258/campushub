@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once 'config/database.php';
+require_once 'includes/notification_helpers.php';
 
 header('Content-Type: application/json');
 
@@ -107,6 +108,34 @@ try {
 
     $insert = $pdo->prepare("INSERT INTO notices (author_type, author_id, content, category, priority, expiry_date) VALUES (?, ?, ?, ?, ?, ?)");
     $insert->execute([$author_type, $author_id, $content, $category, $priority, $expiry_date]);
+    $noticeId = (int) $pdo->lastInsertId();
+
+    if (in_array($priority, ['high', 'urgent'], true)) {
+        $recipientIds = [];
+
+        if ($author_type === 'society') {
+            $fStmt = $pdo->prepare("SELECT user_id FROM society_followers WHERE society_id = ?");
+            $fStmt->execute([$author_id]);
+            $recipientIds = array_map('intval', array_column($fStmt->fetchAll(PDO::FETCH_ASSOC), 'user_id'));
+        } else {
+            $uStmt = $pdo->query("SELECT id FROM users WHERE is_verified = 1");
+            $recipientIds = array_map('intval', array_column($uStmt->fetchAll(PDO::FETCH_ASSOC), 'id'));
+        }
+
+        $preview = mb_strlen($content) > 140 ? mb_substr($content, 0, 140) . '...' : $content;
+
+        campushub_notify_many($pdo, $recipientIds, [
+            'actor_user_id' => $author_type === 'admin' ? $author_id : null,
+            'actor_society_id' => $author_type === 'society' ? $author_id : null,
+            'type' => 'important_notice',
+            'title' => $priority === 'urgent' ? 'Urgent notice posted' : 'High-priority notice posted',
+            'message' => $preview,
+            'entity_type' => 'notice',
+            'entity_id' => $noticeId,
+            'link_url' => 'notices.php',
+            'dedupe_key' => 'notice:' . $noticeId,
+        ]);
+    }
 
     echo json_encode([
         'success' => true,

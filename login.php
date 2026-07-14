@@ -4,6 +4,7 @@ session_start();
 
 // Load the database connection. $pdo object becomes available after this.
 require 'config/database.php';
+require_once 'includes/notification_helpers.php';
 
 $error = "";
 $success = "";
@@ -46,6 +47,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['fullname'] = $user['fullname'];
                     $_SESSION['category'] = $user['category'];
                     $_SESSION['email']    = $email;
+
+                    try {
+                        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+                        $ua = substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? 'unknown'), 0, 300);
+                        $fingerprint = hash('sha256', strtolower($ip . '|' . $ua));
+
+                        $fpStmt = $pdo->prepare("SELECT id FROM user_login_fingerprints WHERE user_id = ? AND fingerprint = ? LIMIT 1");
+                        $fpStmt->execute([(int) $user['id'], $fingerprint]);
+                        $knownDevice = (bool) $fpStmt->fetchColumn();
+
+                        if ($knownDevice) {
+                            $touchStmt = $pdo->prepare("UPDATE user_login_fingerprints SET last_ip = ?, last_seen_at = NOW() WHERE user_id = ? AND fingerprint = ?");
+                            $touchStmt->execute([$ip, (int) $user['id'], $fingerprint]);
+                        } else {
+                            $insertFp = $pdo->prepare("INSERT INTO user_login_fingerprints (user_id, fingerprint, last_ip, created_at, last_seen_at) VALUES (?, ?, ?, NOW(), NOW())");
+                            $insertFp->execute([(int) $user['id'], $fingerprint, $ip]);
+
+                            campushub_notify_user($pdo, [
+                                'recipient_user_id' => (int) $user['id'],
+                                'actor_user_id' => (int) $user['id'],
+                                'type' => 'unknown_login_device',
+                                'title' => 'New login from unknown device/location',
+                                'message' => 'A new device/location login was detected for your account (IP: ' . $ip . ').',
+                                'entity_type' => 'account',
+                                'entity_id' => (int) $user['id'],
+                                'link_url' => 'settings.php',
+                                'dedupe_key' => 'unknown-login:' . (int) $user['id'] . ':' . $fingerprint,
+                            ]);
+                        }
+                    } catch (Throwable $e) {
+                        // Login should not fail if notification/device tracking fails.
+                    }
 
                     // Login successful — send the user to the home page.
                     header("Location: index.php");

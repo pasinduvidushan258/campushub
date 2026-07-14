@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once 'config/database.php';
 require_once 'includes/security_email.php';
+require_once 'includes/notification_helpers.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -59,6 +60,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $update_stmt = $pdo->prepare("UPDATE users SET email = ? WHERE id = ?");
                 if ($update_stmt->execute([$new_email, $user_id])) {
                     $success = 'Email updated successfully!';
+
+                    campushub_notify_user($pdo, [
+                        'recipient_user_id' => $user_id,
+                        'actor_user_id' => $user_id,
+                        'type' => 'account_email_changed',
+                        'title' => 'Your account email was changed',
+                        'message' => 'Your login email was updated to ' . $new_email . '.',
+                        'entity_type' => 'account',
+                        'entity_id' => $user_id,
+                        'link_url' => 'change_email.php',
+                        'dedupe_key' => 'email-change:' . $user_id . ':' . date('YmdHis'),
+                    ]);
+
                     // Refresh current user data
                     $stmt = $pdo->prepare("SELECT email, password FROM users WHERE id = ?");
                     $stmt->execute([$user_id]);

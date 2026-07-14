@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'config/database.php';
+require_once 'includes/notification_helpers.php';
 
 $message = "";
 $is_success = false;
@@ -9,7 +10,7 @@ if (isset($_GET['token'])) {
     $token = $_GET['token'];
 
     // find the society with the provided token
-    $stmt = $pdo->prepare("SELECT id, society_name, status FROM societies WHERE verify_token = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, admin_id, society_name, status FROM societies WHERE verify_token = ? LIMIT 1");
     $stmt->execute([$token]);
     $society = $stmt->fetch();
 
@@ -25,6 +26,18 @@ if (isset($_GET['token'])) {
             if ($update_stmt->execute([$society['id']])) {
                 $message = "Success! The society <b>{$society['society_name']}</b> has been successfully verified and activated. The admin can now switch to this profile.";
                 $is_success = true;
+
+                campushub_notify_user($pdo, [
+                    'recipient_user_id' => (int) $society['admin_id'],
+                    'actor_society_id' => (int) $society['id'],
+                    'type' => 'society_verification_approved',
+                    'title' => 'Your society verification was approved',
+                    'message' => (string) $society['society_name'] . ' is now verified and active.',
+                    'entity_type' => 'society',
+                    'entity_id' => (int) $society['id'],
+                    'link_url' => 'society_dashboard.php',
+                    'dedupe_key' => 'society-verify-approved:' . (int) $society['id'],
+                ]);
             } else {
                 $message = "Something went wrong while verifying. Please try again or contact support.";
             }

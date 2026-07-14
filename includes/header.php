@@ -49,7 +49,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
             </a>
             <div class="search-bar">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="headerSearchInput" placeholder="Search CampusHub..." autocomplete="off" aria-label="Search CampusHub" aria-expanded="false" aria-controls="headerSearchPanel">
+                <input type="text" id="headerSearchInput" placeholder="Search ..." autocomplete="off" aria-label="Search CampusHub" aria-expanded="false" aria-controls="headerSearchPanel">
                 <div id="headerSearchPanel" class="header-search-panel" role="listbox" aria-label="Search suggestions"></div>
             </div>
         </div>
@@ -81,13 +81,22 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
 
             <?php if(isset($_SESSION['user_id'])): ?>
 
-                <!-- Quick-action icon buttons: messages and notifications -->
+                <!-- Quick-action icon button: notifications -->
                 <div class="icon-group">
                     <div class="nav-item-container">
-                        <button class="icon-btn" id="msgBtn" title="Messages"><i class="fas fa-envelope"></i></button>
-                    </div>
-                    <div class="nav-item-container">
                         <button class="icon-btn" id="notifBtn" title="Notifications"><i class="fas fa-bell"></i></button>
+                        <span class="notif-badge" id="notifBadge" hidden>0</span>
+
+                        <div class="nav-dropdown notif-dropdown" id="notifDropdown" aria-hidden="true">
+                            <div class="dropdown-header-title notif-header">
+                                <h3>Notifications</h3>
+                                <button type="button" id="notifMarkAllBtn" class="notif-mark-all">Mark all read</button>
+                            </div>
+                            <div class="dropdown-body" id="notifDropdownBody">
+                                <div class="notif-empty">No notifications yet.</div>
+                            </div>
+                            <a href="notifications.php" class="notif-footer-link">View all notifications</a>
+                        </div>
                     </div>
                 </div>
 

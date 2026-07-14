@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once 'config/database.php';
 require_once 'includes/function.php';
+require_once 'includes/notification_helpers.php';
 
 header('Content-Type: application/json');
 
@@ -122,6 +123,25 @@ $insert->execute([
 ]);
 
 $new_event_id = $pdo->lastInsertId();
+
+try {
+    $followersStmt = $pdo->prepare("SELECT user_id FROM society_followers WHERE society_id = ?");
+    $followersStmt->execute([$society_id]);
+    $recipientIds = array_map('intval', array_column($followersStmt->fetchAll(PDO::FETCH_ASSOC), 'user_id'));
+
+    campushub_notify_many($pdo, $recipientIds, [
+        'actor_society_id' => $society_id,
+        'type' => 'new_event_followed_society',
+        'title' => 'New event in followed society',
+        'message' => $title,
+        'entity_type' => 'event',
+        'entity_id' => (int) $new_event_id,
+        'link_url' => 'event_details.php?id=' . (int) $new_event_id,
+        'dedupe_key' => 'new-event:' . (int) $new_event_id,
+    ]);
+} catch (Throwable $e) {
+    // Notification failure should not block event creation.
+}
 
 echo json_encode([
     'success'  => true,

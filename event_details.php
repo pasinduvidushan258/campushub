@@ -50,6 +50,33 @@ $save_count_stmt = $pdo->prepare(
 );
 $save_count_stmt->execute([$event_id]);
 $save_count = (int)$save_count_stmt->fetchColumn();
+
+$eventComments = [];
+$commentReplies = [];
+
+try {
+    $hasCommentsTable = (bool) $pdo->query("SHOW TABLES LIKE 'event_comments'")->fetchColumn();
+
+    if ($hasCommentsTable) {
+        $commentStmt = $pdo->prepare("SELECT c.id, c.user_id, c.parent_comment_id, c.content, c.created_at, u.fullname
+                                      FROM event_comments c
+                                      INNER JOIN users u ON u.id = c.user_id
+                                      WHERE c.event_id = ?
+                                      ORDER BY c.created_at ASC");
+        $commentStmt->execute([$event_id]);
+        $rows = $commentStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        foreach ($rows as $row) {
+            if (!empty($row['parent_comment_id'])) {
+                $commentReplies[] = $row;
+            } else {
+                $eventComments[] = $row;
+            }
+        }
+    }
+} catch (Throwable $e) {
+    // Comments are optional; keep page alive if table/query fails.
+}
 ?>
 
 <link rel="stylesheet" href="assets/css/event_details.css">
@@ -227,9 +254,138 @@ $save_count = (int)$save_count_stmt->fetchColumn();
 
 </div>
 
+            <div class="registration-card" style="margin-top: 18px; display: block;">
+                <div class="registration-info" style="margin-bottom: 12px;">
+                    <h3>
+                        <i class="fas fa-comments"></i>
+                        Discussion
+                    </h3>
+                    <p>Share thoughts, reply to comments, and mention users with @name.</p>
+                </div>
+
+                <?php if (isLoggedIn()): ?>
+                    <form id="eventCommentForm" style="display: grid; gap: 10px; margin-bottom: 14px;">
+                        <input type="hidden" id="parentCommentId" value="">
+                        <textarea id="eventCommentInput" rows="3" placeholder="Write a comment..." style="border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); color: #e5e7eb; padding: 10px; resize: vertical;"></textarea>
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button type="button" id="clearReplyBtn" style="display:none; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #cbd5e1; border-radius: 8px; padding: 8px 12px; cursor: pointer;">Cancel reply</button>
+                            <button type="submit" style="border: none; background: #f97316; color: white; border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer;">Post Comment</button>
+                        </div>
+                    </form>
+                <?php else: ?>
+                    <p style="color: #94a3b8; margin-bottom: 14px;">Login to join this discussion.</p>
+                <?php endif; ?>
+
+                <?php if (!empty($eventComments)): ?>
+                    <div style="display: grid; gap: 10px;">
+                        <?php foreach ($eventComments as $comment): ?>
+                            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">
+                                    <strong style="color:#f8fafc;"><?= htmlspecialchars($comment['fullname']) ?></strong>
+                                    <span style="font-size:0.75rem; color:#94a3b8;"><?= date('d M Y h:i A', strtotime($comment['created_at'])) ?></span>
+                                </div>
+                                <p style="margin: 0; color: #cbd5e1;"><?= nl2br(htmlspecialchars($comment['content'])) ?></p>
+                                <?php if (isLoggedIn()): ?>
+                                    <button type="button" class="reply-btn" data-parent-id="<?= (int) $comment['id'] ?>" data-parent-user="<?= htmlspecialchars($comment['fullname']) ?>" style="margin-top:8px; border:none; background:transparent; color:#f97316; cursor:pointer; font-size:0.84rem; padding:0;">Reply</button>
+                                <?php endif; ?>
+
+                                <?php
+                                $replies = array_filter($commentReplies, static function ($r) use ($comment) {
+                                    return (int) $r['parent_comment_id'] === (int) $comment['id'];
+                                });
+                                ?>
+
+                                <?php if (!empty($replies)): ?>
+                                    <div style="margin-top: 10px; display: grid; gap: 8px;">
+                                        <?php foreach ($replies as $reply): ?>
+                                            <div style="margin-left: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; padding: 8px;">
+                                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:5px;">
+                                                    <strong style="color:#e2e8f0;"><?= htmlspecialchars($reply['fullname']) ?></strong>
+                                                    <span style="font-size:0.72rem; color:#94a3b8;"><?= date('d M Y h:i A', strtotime($reply['created_at'])) ?></span>
+                                                </div>
+                                                <p style="margin: 0; color: #cbd5e1;"><?= nl2br(htmlspecialchars($reply['content'])) ?></p>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <p style="color: #94a3b8;">No comments yet. Be the first to start the discussion.</p>
+                <?php endif; ?>
+            </div>
+
         </div>
 
     </div>
 </div>
+
+<script>
+(function () {
+    const form = document.getElementById('eventCommentForm');
+    const input = document.getElementById('eventCommentInput');
+    const parentInput = document.getElementById('parentCommentId');
+    const clearBtn = document.getElementById('clearReplyBtn');
+    const replyButtons = document.querySelectorAll('.reply-btn');
+
+    if (replyButtons.length && input && parentInput && clearBtn) {
+        replyButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const parentId = btn.getAttribute('data-parent-id') || '';
+                const parentUser = btn.getAttribute('data-parent-user') || '';
+                parentInput.value = parentId;
+                clearBtn.style.display = 'inline-block';
+                input.focus();
+                if (!input.value.trim() && parentUser) {
+                    input.value = '@' + parentUser.replace(/\s+/g, '') + ' ';
+                }
+            });
+        });
+
+        clearBtn.addEventListener('click', () => {
+            parentInput.value = '';
+            clearBtn.style.display = 'none';
+        });
+    }
+
+    if (!form || !input || !parentInput) {
+        return;
+    }
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const content = input.value.trim();
+        if (!content) {
+            return;
+        }
+
+        const payload = new URLSearchParams();
+        payload.append('event_id', String(<?= (int) $event_id ?>));
+        payload.append('content', content);
+        if (parentInput.value) {
+            payload.append('parent_comment_id', parentInput.value);
+        }
+
+        try {
+            const res = await fetch('add_event_comment.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: payload.toString()
+            });
+            const data = await res.json();
+            if (data && data.success) {
+                window.location.reload();
+                return;
+            }
+
+            alert((data && data.message) ? data.message : 'Unable to post comment.');
+        } catch (_) {
+            alert('Unable to post comment right now.');
+        }
+    });
+})();
+</script>
 
 <?php require_once 'includes/footer.php'; ?>

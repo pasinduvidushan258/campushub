@@ -4,6 +4,102 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileDropdown = document.getElementById('profileDropdown');
     const viewMain        = document.getElementById('profileViewMain');
     const viewAll         = document.getElementById('profileViewAll');
+    const notifBtn        = document.getElementById('notifBtn');
+    const notifDropdown   = document.getElementById('notifDropdown');
+    const notifBody       = document.getElementById('notifDropdownBody');
+    const notifBadge      = document.getElementById('notifBadge');
+    const notifMarkAllBtn = document.getElementById('notifMarkAllBtn');
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function updateNotifBadge(unreadCount) {
+        if (!notifBadge) return;
+
+        const count = Number(unreadCount) || 0;
+        if (count <= 0) {
+            notifBadge.hidden = true;
+            notifBadge.textContent = '0';
+            return;
+        }
+
+        notifBadge.hidden = false;
+        notifBadge.textContent = count > 99 ? '99+' : String(count);
+    }
+
+    function renderNotifications(items) {
+        if (!notifBody) return;
+
+        if (!Array.isArray(items) || items.length === 0) {
+            notifBody.innerHTML = '<div class="notif-empty">No notifications yet.</div>';
+            return;
+        }
+
+        notifBody.innerHTML = items.map((item) => {
+            const readClass = item.is_read ? 'read' : 'unread';
+            const targetUrl = item.link_url ? escapeHtml(item.link_url) : '#';
+
+            return `
+                <button type="button" class="notif-item ${readClass}" data-id="${Number(item.id) || 0}" data-url="${targetUrl}">
+                    <span class="notif-dot"></span>
+                    <span class="notif-copy">
+                        <strong>${escapeHtml(item.title || 'CampusHub Update')}</strong>
+                        <p>${escapeHtml(item.message || '')}</p>
+                        <time>${escapeHtml(item.time_ago || 'Just now')}</time>
+                    </span>
+                </button>
+            `;
+        }).join('');
+
+        notifBody.querySelectorAll('.notif-item').forEach((row) => {
+            row.addEventListener('click', async function () {
+                const id = Number(this.getAttribute('data-id') || 0);
+                const url = this.getAttribute('data-url') || '';
+
+                if (id > 0) {
+                    try {
+                        const res = await fetch('notifications_mark_read.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ notification_id: id })
+                        });
+                        const payload = await res.json();
+                        updateNotifBadge(payload.unread_count || 0);
+                    } catch (_) {
+                        // Keep navigation resilient even if mark-read fails.
+                    }
+                }
+
+                if (url && url !== '#') {
+                    window.location.href = url;
+                }
+            });
+        });
+    }
+
+    async function refreshNotifications() {
+        if (!notifBody) return;
+
+        try {
+            const res = await fetch('notifications_fetch.php', { credentials: 'same-origin' });
+            const payload = await res.json();
+
+            if (!payload || !payload.success) {
+                return;
+            }
+
+            updateNotifBadge(payload.unread_count || 0);
+            renderNotifications(payload.notifications || []);
+        } catch (_) {
+            // Silent fail to avoid breaking header interactions.
+        }
+    }
 
     function closeAllDropdowns() {
         if (profileDropdown) {
@@ -14,6 +110,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     viewAll.style.display  = 'none';
                 }
             }, 300);
+        }
+
+        if (notifDropdown) {
+            notifDropdown.classList.remove('show');
+            notifDropdown.setAttribute('aria-hidden', 'true');
         }
     }
 
@@ -28,6 +129,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('click', closeAllDropdowns);
     if (profileDropdown) profileDropdown.addEventListener('click', e => e.stopPropagation());
+
+    if (notifBtn && notifDropdown) {
+        notifBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isShowing = notifDropdown.classList.contains('show');
+            closeAllDropdowns();
+            if (!isShowing) {
+                notifDropdown.classList.add('show');
+                notifDropdown.setAttribute('aria-hidden', 'false');
+                refreshNotifications();
+            }
+        });
+
+        notifDropdown.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    }
+
+    if (notifMarkAllBtn) {
+        notifMarkAllBtn.addEventListener('click', async function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            try {
+                const res = await fetch('notifications_mark_read.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mark_all: true })
+                });
+                const payload = await res.json();
+                updateNotifBadge(payload.unread_count || 0);
+                refreshNotifications();
+            } catch (_) {
+                // Ignore and keep current UI state.
+            }
+        });
+    }
+
+    refreshNotifications();
+    setInterval(refreshNotifications, 45000);
 
     const seeAllBtn = document.getElementById('seeAllProfilesBtn');
     const backBtn   = document.getElementById('backToMainProfileBtn');
@@ -136,15 +277,6 @@ document.addEventListener('DOMContentLoaded', function() {
         let fetchController = null;
         let latestRequestId = 0;
         let activeIndex = -1;
-
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/\"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
 
         function highlightMatch(text, query) {
             if (!query) return escapeHtml(text);

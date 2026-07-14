@@ -7,6 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once 'config/database.php';
 require_once 'includes/function.php';
+require_once 'includes/notification_helpers.php';
 
 header('Content-Type: application/json');
 
@@ -51,6 +52,28 @@ try {
         $insert = $pdo->prepare("INSERT IGNORE INTO event_likes (user_id, event_id) VALUES (?, ?)");
         $insert->execute([$user_id, $event_id]);
         $action = 'liked';
+
+        try {
+            $ownerStmt = $pdo->prepare("SELECT s.admin_id, e.title FROM events e INNER JOIN societies s ON s.id = e.society_id WHERE e.id = ? LIMIT 1");
+            $ownerStmt->execute([$event_id]);
+            $ownerData = $ownerStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($ownerData && (int) $ownerData['admin_id'] !== $user_id) {
+                campushub_notify_user($pdo, [
+                    'recipient_user_id' => (int) $ownerData['admin_id'],
+                    'actor_user_id' => $user_id,
+                    'type' => 'post_like',
+                    'title' => 'Your post received a new like',
+                    'message' => (string) ($ownerData['title'] ?? 'An event') . ' received a new like.',
+                    'entity_type' => 'event',
+                    'entity_id' => $event_id,
+                    'link_url' => 'event_details.php?id=' . $event_id,
+                    'dedupe_key' => 'event-like:' . $event_id . ':' . $user_id,
+                ]);
+            }
+        } catch (Throwable $e) {
+            // Keep like action resilient.
+        }
     }
 
     $count_stmt = $pdo->prepare("SELECT COUNT(*) FROM event_likes WHERE event_id = ?");

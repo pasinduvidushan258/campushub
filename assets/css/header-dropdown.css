@@ -378,6 +378,24 @@
 }
 .icon-btn:hover { background: rgba(255,255,255,0.12); }
 
+.notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #fff;
+    background: #ef4444;
+    border: 1px solid rgba(255,255,255,0.18);
+}
+
 .nav-dropdown {
     display: none; position: absolute; right: -10px; top: 52px; background: #242526; 
     width: 340px; box-shadow: 0 12px 28px rgba(0,0,0,0.5); border-radius: 8px;
@@ -389,6 +407,118 @@
 .dropdown-header-title h3 { margin: 0; color: #e4e6eb; font-size: 1.25rem; font-weight: 700; }
 
 .dropdown-body { max-height: 360px; overflow-y: auto; padding: 0 8px 8px 8px; }
+
+.notif-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 12px;
+}
+
+.notif-mark-all {
+    border: 1px solid rgba(249, 115, 22, 0.4);
+    background: rgba(249, 115, 22, 0.12);
+    color: #fdba74;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.notif-mark-all:hover {
+    background: rgba(249, 115, 22, 0.2);
+}
+
+.notif-item {
+    width: 100%;
+    border: none;
+    text-align: left;
+    border-radius: 10px;
+    background: transparent;
+    color: #e5e7eb;
+    padding: 10px;
+    margin-top: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.notif-item:hover {
+    background: rgba(255,255,255,0.06);
+}
+
+.notif-item.unread {
+    background: rgba(59,130,246,0.12);
+}
+
+.notif-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 7px;
+    background: #60a5fa;
+    flex: 0 0 auto;
+}
+
+.notif-item.read .notif-dot {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.notif-copy {
+    display: grid;
+    gap: 3px;
+}
+
+.notif-copy strong {
+    font-size: 0.88rem;
+    line-height: 1.25;
+}
+
+.notif-copy p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 0.79rem;
+    line-height: 1.35;
+}
+
+.notif-copy time {
+    color: #94a3b8;
+    font-size: 0.73rem;
+}
+
+.notif-empty {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 18px 10px;
+}
+
+.notif-footer-link {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: #fdba74;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.02);
+}
+
+.notif-footer-link:hover {
+    background: rgba(249, 115, 22, 0.12);
+}
+
+/* Keep the bell panel compact: show about 3 notifications, scroll the rest. */
+#notifDropdownBody {
+    max-height: 285px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
 
 /* Scrollbar customizations */
 .dropdown-body::-webkit-scrollbar { width: 6px; }
