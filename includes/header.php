@@ -49,7 +49,8 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
             </a>
             <div class="search-bar">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="headerSearchInput" placeholder="Search events...">
+                <input type="text" id="headerSearchInput" placeholder="Search CampusHub..." autocomplete="off" aria-label="Search CampusHub" aria-expanded="false" aria-controls="headerSearchPanel">
+                <div id="headerSearchPanel" class="header-search-panel" role="listbox" aria-label="Search suggestions"></div>
             </div>
         </div>
 
@@ -443,23 +444,6 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
 </header>
 
 <script src="assets/js/header.js"></script>
-
-<!-- Global header search script -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const headerSearch = document.getElementById('headerSearchInput');
-    if (headerSearch) {
-        headerSearch.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const query = encodeURIComponent(this.value.trim());
-                if (query) {
-                    window.location.href = 'events.php?search=' + query;
-                }
-            }
-        });
-    }
-});
-</script>
 
 </body>
 </html>
