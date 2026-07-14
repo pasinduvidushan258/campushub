@@ -51,42 +51,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if ($stmt->execute([$_SESSION['user_id'], $name, $desc, $email1, $email2, $verify_token])) {
             
-            $verification_link = app_base_url() . '/verify_society.php?token=' . urlencode($verify_token);
+            $verification_link = 'https://campushub.byethost11.com/verify_society.php?token=' . urlencode($verify_token);
 
             // =========================================================
             // send verification emails to both provided email addresses using PHPMailer
             // =========================================================
             
-            //read SMTP credentials from .env file for better security and separation of configuration
+            // Read SMTP credentials from .env file
             $env = parse_ini_file(__DIR__ . '/.env');
+            if (!$env || empty($env['SMTP_EMAIL']) || empty($env['SMTP_APP_PASSWORD'])) {
+                $error = "Society created in database, but failed to send verification emails. SMTP credentials are not configured.";
+            } else {
 
-            // Create a new PHPMailer instance and configure SMTP settings
-            $mail = new PHPMailer(true);
+                // Create a new PHPMailer instance and configure SMTP settings
+                $mail = new PHPMailer(true);
 
-            try {
-                // Server settings
-                $mail->isSMTP();
-                $mail->Host       = 'smtp.gmail.com';
-                $mail->SMTPAuth   = true;
-                
-                // Gmail & App Passwords
-                $mail->Username   = $env['SMTP_EMAIL'];
-                $mail->Password   = $env['SMTP_APP_PASSWORD'];
+                try {
+                    // Server settings (match the proven SMTP configuration used elsewhere in the project)
+                    $mail->isSMTP();
+                    $mail->Host       = 'smtp.gmail.com';
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = $env['SMTP_EMAIL'];
+                    $mail->Password   = $env['SMTP_APP_PASSWORD'];
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                    $mail->Port       = 465;
 
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port       = 587;
+                    // Recipients
+                    $mail->setFrom($env['SMTP_EMAIL'], 'CampusHub System');
+                    $mail->addAddress($email1); // Senior Treasurer
+                    $mail->addAddress($email2); // Secretary
 
-                // Recipients
-                $mail->setFrom($env['SMTP_EMAIL'], 'CampusHub System'); 
-                $mail->addAddress($email1); // Senior Treasurer
-                $mail->addAddress($email2); // Secretary
+                    // Email Content
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Action Required: Verify New Society - CampusHub';
 
-                // Email Content
-                $mail->isHTML(true);
-                $mail->Subject = 'Action Required: Verify New Society - CampusHub';
-                
-                // Display the verification link as a styled button in the email body for better user experience
-                $mail->Body    = "
+                    // Display the verification link as a styled button in the email body for better user experience
+                    $mail->Body    = "
                     <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>
                         <h2 style='color: #F97316; text-align: center;'>CampusHub Society Verification</h2>
                         <p>Hello,</p>
@@ -101,15 +101,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 ";
 
-                $mail->send();
+                    $mail->send();
 
-                $success = "Society created! Verification links have been sent to the provided emails.";
+                    $success = "Society created! Verification links have been sent to the provided emails.";
 
-                // Redirect to the home feed after a 4-second confirmation delay
-                echo "<script>setTimeout(() => { window.location.href = 'index.php'; }, 4000);</script>";
+                    // Redirect to the home feed after a 4-second confirmation delay
+                    echo "<script>setTimeout(() => { window.location.href = 'index.php'; }, 4000);</script>";
 
-            } catch (Exception $e) {
-                $error = "Society created in database, but failed to send verification emails. Mailer Error: {$mail->ErrorInfo}";
+                } catch (Exception $e) {
+                    $error = "Society created in database, but failed to send verification emails. Mailer Error: {$mail->ErrorInfo}";
+                }
             }
 
         } else {
