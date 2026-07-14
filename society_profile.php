@@ -26,6 +26,7 @@ if (!$society) {
 $isOwner = isLoggedIn()
     && (($_SESSION['active_mode'] ?? 'user') === 'society')
     && (int) ($_SESSION['active_society_id'] ?? 0) === $society_id;
+$isPublicVisitor = !$isOwner;
 
 $name        = htmlspecialchars($society['society_name']);
 $faculty     = htmlspecialchars($society['faculty'] ?? '');
@@ -49,7 +50,12 @@ $has_cover = !empty($society['cover_path']) && file_exists('assets/images/upload
 $logo_url  = $has_logo ? 'assets/images/uploads/' . htmlspecialchars($society['logo_path']) : '';
 $cover_url = $has_cover ? 'assets/images/uploads/' . htmlspecialchars($society['cover_path']) : '';
 
-$eventStmt = $pdo->prepare("SELECT * FROM events WHERE society_id = ? ORDER BY event_date DESC");
+$eventStmt = $pdo->prepare("SELECT e.*,
+    (SELECT COUNT(*) FROM event_likes WHERE event_id = e.id) AS likes_count,
+    (SELECT COUNT(*) FROM saved_events WHERE event_id = e.id) AS saves_count
+    FROM events e
+    WHERE e.society_id = ?
+    ORDER BY e.event_date DESC, e.start_time DESC");
 $eventStmt->execute([$society_id]);
 $events = $eventStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -90,10 +96,11 @@ include 'includes/header.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/society.css">
+    <link rel="stylesheet" href="assets/css/event.css">
 </head>
 <body>
 
-<div class="soc-container">
+<div class="soc-container <?= $isPublicVisitor ? 'soc-public-page' : '' ?>">
 
     <div class="soc-header">
         <div class="soc-cover" <?= $has_cover ? "style=\"background-image:url('$cover_url')\"" : '' ?>>
@@ -149,7 +156,7 @@ include 'includes/header.php';
 
         <div id="about" class="tab-pane active">
             <div class="info-card">
-                <h3><i class="fas fa-info-circle"></i> About</h3>
+                <h3><i class="fas fa-info-circle"></i> <?= $isPublicVisitor ? 'Public Overview' : 'About' ?></h3>
                 <p style="color:#cfd2d6; line-height:1.6;"><?= nl2br($description) ?></p>
             </div>
 
@@ -168,13 +175,18 @@ include 'includes/header.php';
                 <ul class="info-list">
                     <li><strong>Faculty:</strong> <?= $faculty ?: 'Not specified' ?></li>
                     <li><strong>Founded:</strong> <?= $founded ?></li>
-                    <li><strong>Address:</strong> <?= $address ?: 'Not specified' ?></li>
-                    <?php if ($adminEmail): ?><li><strong>Admin Email:</strong> <?= $adminEmail ?></li><?php endif; ?>
-                    <li><strong>Email:</strong> <?= $email1 ?></li>
-                    <?php if ($contact): ?><li><strong>Contact No:</strong> <?= $contact ?></li><?php endif; ?>
+                    <?php if (!$isPublicVisitor): ?>
+                        <li><strong>Address:</strong> <?= $address ?: 'Not specified' ?></li>
+                        <?php if ($adminEmail): ?><li><strong>Admin Email:</strong> <?= $adminEmail ?></li><?php endif; ?>
+                        <li><strong>Email:</strong> <?= $email1 ?></li>
+                        <?php if ($contact): ?><li><strong>Contact No:</strong> <?= $contact ?></li><?php endif; ?>
+                    <?php endif; ?>
                     <?php if ($website): ?><li><strong>Website:</strong> <a href="<?= $website ?>" target="_blank" style="color:#F97316;"><?= $website ?></a></li><?php endif; ?>
                     <?php if ($facebook): ?><li><strong>Facebook:</strong> <a href="<?= $facebook ?>" target="_blank" style="color:#F97316;">View page</a></li><?php endif; ?>
                     <?php if ($instagram): ?><li><strong>Instagram:</strong> <a href="<?= $instagram ?>" target="_blank" style="color:#F97316;">View page</a></li><?php endif; ?>
+                    <?php if ($isPublicVisitor && !$website && !$facebook && !$instagram): ?>
+                        <li><strong>Public Contact:</strong> Limited public details are available right now.</li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -198,19 +210,42 @@ include 'includes/header.php';
                 <div class="soc-events-grid">
                     <?php foreach ($events as $ev): ?>
                         <?php
-                            $poster = !empty($ev['poster_path']) && file_exists($ev['poster_path']) ? $ev['poster_path'] : '';
+                            $poster = !empty($ev['poster_path']) && file_exists('assets/images/events/' . $ev['poster_path'])
+                                ? 'assets/images/events/' . $ev['poster_path']
+                                : '';
+
+                            $statusValue = strtolower(trim((string) ($ev['status'] ?? 'upcoming')));
+                            if (!in_array($statusValue, ['upcoming', 'ongoing', 'completed'], true)) {
+                                $statusValue = 'completed';
+                            }
                         ?>
-                        <a href="event_details.php?id=<?= $ev['id'] ?>" class="soc-event-card" style="text-decoration:none;">
-                            <?php if ($poster): ?>
-                                <img src="<?= htmlspecialchars($poster) ?>" alt="<?= htmlspecialchars($ev['title']) ?>">
-                            <?php endif; ?>
-                            <div class="soc-event-card-body">
-                                <h4><?= htmlspecialchars($ev['title']) ?></h4>
-                                <p><i class="fas fa-calendar-day"></i> <?= date('M d, Y', strtotime($ev['event_date'])) ?></p>
-                                <?php if (!empty($ev['venue'])): ?><p><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($ev['venue']) ?></p><?php endif; ?>
-                                <span class="soc-status-pill"><?= htmlspecialchars($ev['status']) ?></span>
+                        <article class="event-card soc-public-event-card">
+                            <a href="event_details.php?id=<?= (int) $ev['id'] ?>" class="event-poster-wrap" style="text-decoration:none;">
+                                <?php if ($poster): ?>
+                                    <img src="<?= htmlspecialchars($poster) ?>" alt="<?= htmlspecialchars($ev['title']) ?>">
+                                <?php else: ?>
+                                    <div class="event-poster-placeholder">
+                                        <i class="fas fa-image"></i>
+                                        <span>No Flyer</span>
+                                    </div>
+                                <?php endif; ?>
+                                <span class="event-status-badge badge-<?= htmlspecialchars($statusValue) ?>"><?= ucfirst($statusValue) ?></span>
+                                <span class="event-category-chip"><?= htmlspecialchars((string) ($ev['category'] ?? 'General')) ?></span>
+                            </a>
+
+                            <div class="event-body">
+                                <h3 class="event-title"><?= htmlspecialchars($ev['title']) ?></h3>
+                                <div class="event-meta">
+                                    <div class="event-meta-row"><i class="fas fa-calendar"></i> <?= date('d M Y', strtotime($ev['event_date'])) ?> at <?= date('h:i A', strtotime($ev['start_time'])) ?></div>
+                                    <div class="event-meta-row"><i class="fas fa-map-marker-alt"></i> <?= !empty($ev['venue']) ? htmlspecialchars($ev['venue']) : 'Venue to be announced' ?></div>
+                                    <div class="event-meta-row"><i class="fas fa-heart"></i> <?= (int) $ev['likes_count'] ?> likes <span class="event-row-dot"></span> <i class="fas fa-bookmark"></i> <?= (int) $ev['saves_count'] ?> saves</div>
+                                </div>
+
+                                <div class="event-footer">
+                                    <a href="event_details.php?id=<?= (int) $ev['id'] ?>" class="action-btn-details">View Details</a>
+                                </div>
                             </div>
-                        </a>
+                        </article>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
@@ -229,14 +264,14 @@ include 'includes/header.php';
                             $favatar = !empty($f['avatar_url']) && $f['avatar_url'] !== 'assets/images/default_avatar.png'
                                 ? $f['avatar_url'] : '';
                         ?>
-                        <div class="soc-follower-card">
+                        <a href="user_profile.php?id=<?= (int) $f['id'] ?>" class="soc-follower-card" style="text-decoration:none;">
                             <?php if ($favatar): ?>
                                 <img src="<?= htmlspecialchars($favatar) ?>" class="soc-follower-avatar" alt="">
                             <?php else: ?>
                                 <div class="soc-follower-avatar" style="display:flex;align-items:center;justify-content:center;"><i class="fas fa-user"></i></div>
                             <?php endif; ?>
                             <p><?= htmlspecialchars($f['fullname']) ?></p>
-                        </div>
+                        </a>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>

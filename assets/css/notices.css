@@ -167,6 +167,24 @@
     font-size: 1rem;
 }
 
+.notice-author-link {
+    display: inline-flex;
+    text-decoration: none;
+}
+
+.notice-author-link:hover .notice-avatar {
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.42);
+}
+
+.notice-author-name-link {
+    color: #f3f4f6;
+    text-decoration: none;
+}
+
+.notice-author-name-link:hover {
+    color: #f97316;
+}
+
 .notice-author-type {
     padding: 3px 8px;
     border-radius: 999px;

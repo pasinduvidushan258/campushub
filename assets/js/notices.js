@@ -26,22 +26,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const buildNoticeCard = (data) => {
         const card = document.createElement('div');
         card.className = 'notice-card';
+        const authorId = Number(data.author_id || 0);
+        const authorHref = data.author_type === 'admin'
+            ? `user_profile.php?id=${authorId}`
+            : `society_profile.php?id=${authorId}`;
 
         const avatarWrap = document.createElement('div');
         avatarWrap.className = 'notice-avatar';
+
+        const avatarLink = document.createElement('a');
+        avatarLink.className = 'notice-author-link';
+        avatarLink.href = authorHref;
+        avatarLink.setAttribute('aria-label', 'View profile');
 
         if (data.avatar_path && data.avatar_path !== 'assets/images/default_avatar.png') {
             const img = document.createElement('img');
             img.src = data.avatar_path;
             img.alt = 'Avatar';
             img.className = 'notice-avatar';
-            avatarWrap.replaceWith(img);
-            card.appendChild(img);
+            avatarLink.appendChild(img);
+            card.appendChild(avatarLink);
         } else {
             const icon = document.createElement('i');
             icon.className = `fas ${data.author_type === 'admin' ? 'fa-user-shield' : 'fa-users'}`;
             avatarWrap.appendChild(icon);
-            card.appendChild(avatarWrap);
+            avatarLink.appendChild(avatarWrap);
+            card.appendChild(avatarLink);
         }
 
         const content = document.createElement('div');
@@ -79,7 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const badge = content.querySelector('.notice-author-type');
         const text = content.querySelector('.notice-text');
 
-        author.textContent = data.author_name;
+        const authorNameLink = document.createElement('a');
+        authorNameLink.href = authorHref;
+        authorNameLink.className = 'notice-author-name-link';
+        authorNameLink.textContent = data.author_name;
+        author.textContent = '';
+        author.appendChild(authorNameLink);
         badge.textContent = data.author_label || (data.author_type === 'admin' ? 'Admin' : 'Society');
         text.textContent = data.content;
 

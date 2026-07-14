@@ -112,6 +112,7 @@ try {
         'success' => true,
         'notice' => [
             'author_type' => $author_type,
+            'author_id' => $author_id,
             'author_name' => $author_name,
             'author_label' => $author_label,
             'avatar_path' => $avatar_path,

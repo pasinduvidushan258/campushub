@@ -12,6 +12,9 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+$active_mode = $_SESSION['active_mode'] ?? 'user';
+$can_edit_profile = ($active_mode === 'user');
+
 $user_id = (int) $_SESSION['user_id'];
 $user_data = [];
 
@@ -91,11 +94,20 @@ include 'includes/header.php';
 
 <div class="profile-container premium-profile">
 
+    <?php if (!$can_edit_profile): ?>
+        <div class="profile-readonly-banner">
+            <i class="fas fa-eye"></i>
+            You are currently in society mode. Personal profile is view-only. Switch to your personal profile to edit.
+        </div>
+    <?php endif; ?>
+
     <div class="profile-header">
-        <form action="update_photo.php" method="POST" enctype="multipart/form-data" id="coverForm" style="display: none;">
-            <input type="hidden" name="photo_type" value="cover">
-            <input type="file" id="coverUpload" name="photo" accept="image/png, image/jpeg, image/jpg" onchange="document.getElementById('coverForm').submit();">
-        </form>
+        <?php if ($can_edit_profile): ?>
+            <form action="update_photo.php" method="POST" enctype="multipart/form-data" id="coverForm" style="display: none;">
+                <input type="hidden" name="photo_type" value="cover">
+                <input type="file" id="coverUpload" name="photo" accept="image/png, image/jpeg, image/jpg" onchange="document.getElementById('coverForm').submit();">
+            </form>
+        <?php endif; ?>
 
         <?php if ($has_cover): ?>
             <div class="profile-cover" style="background-image: url('<?php echo $cover_url; ?>'); background-size: cover; background-position: center;">
@@ -103,14 +115,18 @@ include 'includes/header.php';
             <div class="profile-cover profile-cover-placeholder">
                 <i class="fas fa-image"></i>
         <?php endif; ?>
-                <button class="edit-cover-btn" onclick="document.getElementById('coverUpload').click();"><i class="fas fa-camera"></i> Edit Cover</button>
+                <?php if ($can_edit_profile): ?>
+                    <button class="edit-cover-btn" onclick="document.getElementById('coverUpload').click();"><i class="fas fa-camera"></i> Edit Cover</button>
+                <?php endif; ?>
             </div>
 
         <div class="profile-info-section">
-            <form action="update_photo.php" method="POST" enctype="multipart/form-data" id="avatarForm" style="display: none;">
-                <input type="hidden" name="photo_type" value="avatar">
-                <input type="file" id="avatarUpload" name="photo" accept="image/png, image/jpeg, image/jpg" onchange="document.getElementById('avatarForm').submit();">
-            </form>
+            <?php if ($can_edit_profile): ?>
+                <form action="update_photo.php" method="POST" enctype="multipart/form-data" id="avatarForm" style="display: none;">
+                    <input type="hidden" name="photo_type" value="avatar">
+                    <input type="file" id="avatarUpload" name="photo" accept="image/png, image/jpeg, image/jpg" onchange="document.getElementById('avatarForm').submit();">
+                </form>
+            <?php endif; ?>
 
             <div class="profile-avatar-wrapper">
                 <?php if ($has_avatar): ?>
@@ -120,7 +136,9 @@ include 'includes/header.php';
                         <i class="fas fa-user"></i>
                     </div>
                 <?php endif; ?>
-                <button class="edit-avatar-btn" onclick="document.getElementById('avatarUpload').click();" aria-label="Edit profile photo"><i class="fas fa-camera"></i></button>
+                <?php if ($can_edit_profile): ?>
+                    <button class="edit-avatar-btn" onclick="document.getElementById('avatarUpload').click();" aria-label="Edit profile photo"><i class="fas fa-camera"></i></button>
+                <?php endif; ?>
             </div>
 
             <div class="profile-details">
@@ -139,9 +157,11 @@ include 'includes/header.php';
                 </div>
             </div>
 
-            <div class="profile-actions">
-                <button class="btn-primary" onclick="openEditModal()"><i class="fas fa-pen-to-square"></i> Edit Profile</button>
-            </div>
+            <?php if ($can_edit_profile): ?>
+                <div class="profile-actions">
+                    <button class="btn-primary" onclick="openEditModal()"><i class="fas fa-pen-to-square"></i> Edit Profile</button>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -367,52 +387,54 @@ include 'includes/header.php';
     </div>
 </div>
 
-<div id="editProfileModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2><i class="fas fa-user-edit"></i> Edit Profile</h2>
-            <button class="close-modal-btn" onclick="closeEditModal()" aria-label="Close modal">&times;</button>
+<?php if ($can_edit_profile): ?>
+    <div id="editProfileModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-edit"></i> Edit Profile</h2>
+                <button class="close-modal-btn" onclick="closeEditModal()" aria-label="Close modal">&times;</button>
+            </div>
+
+            <form action="update_profile.php" method="POST" class="edit-profile-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="fullname" value="<?php echo $fullname; ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Tagline / Bio</label>
+                    <input type="text" name="tagline" value="<?php echo $tagline !== 'Welcome to CampusHub!' ? $tagline : ''; ?>" placeholder="e.g. Tech enthusiast | Undergrad">
+                </div>
+
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" name="location" value="<?php echo $location !== 'Not specified' ? $location : ''; ?>" placeholder="e.g. Colombo, Sri Lanka">
+                </div>
+
+                <?php if ($category === 'student'): ?>
+                    <div class="form-group">
+                        <label>School</label>
+                        <input type="text" name="school" value="<?php echo $school !== 'Not specified' ? $school : ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Degree / Program</label>
+                        <input type="text" name="qualifications" value="<?php echo $qualifications; ?>" placeholder="e.g. BSc in Computer Science">
+                    </div>
+                <?php else: ?>
+                    <div class="form-group">
+                        <label>Qualifications</label>
+                        <input type="text" name="qualifications" value="<?php echo $qualifications; ?>" placeholder="e.g. PhD, MSc in Software Engineering">
+                    </div>
+                <?php endif; ?>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </form>
         </div>
-
-        <form action="update_profile.php" method="POST" class="edit-profile-form">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" name="fullname" value="<?php echo $fullname; ?>" required>
-            </div>
-
-            <div class="form-group">
-                <label>Tagline / Bio</label>
-                <input type="text" name="tagline" value="<?php echo $tagline !== 'Welcome to CampusHub!' ? $tagline : ''; ?>" placeholder="e.g. Tech enthusiast | Undergrad">
-            </div>
-
-            <div class="form-group">
-                <label>Location</label>
-                <input type="text" name="location" value="<?php echo $location !== 'Not specified' ? $location : ''; ?>" placeholder="e.g. Colombo, Sri Lanka">
-            </div>
-
-            <?php if ($category === 'student'): ?>
-                <div class="form-group">
-                    <label>School</label>
-                    <input type="text" name="school" value="<?php echo $school !== 'Not specified' ? $school : ''; ?>">
-                </div>
-                <div class="form-group">
-                    <label>Degree / Program</label>
-                    <input type="text" name="qualifications" value="<?php echo $qualifications; ?>" placeholder="e.g. BSc in Computer Science">
-                </div>
-            <?php else: ?>
-                <div class="form-group">
-                    <label>Qualifications</label>
-                    <input type="text" name="qualifications" value="<?php echo $qualifications; ?>" placeholder="e.g. PhD, MSc in Software Engineering">
-                </div>
-            <?php endif; ?>
-
-            <div class="modal-actions">
-                <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
-                <button type="submit" class="btn-save">Save Changes</button>
-            </div>
-        </form>
     </div>
-</div>
+<?php endif; ?>
 
 <script>
 function openTab(evt, tabName) {

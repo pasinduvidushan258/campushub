@@ -35,7 +35,7 @@ $notices = [];
 $notice_fetch_error = '';
 
 try {
-        $sql = "SELECT n.*, 
+    $sql = "SELECT n.*, 
             u.fullname as admin_name, u.avatar_url as admin_avatar, u.category as admin_category,
             s.society_name, s.logo_path as society_logo
             FROM notices n
@@ -125,6 +125,9 @@ try {
                 $is_admin = $n['author_type'] === 'admin';
                 $author_name = $is_admin ? $n['admin_name'] : $n['society_name'];
                 $avatar_path = $is_admin ? $n['admin_avatar'] : (!empty($n['society_logo']) ? 'assets/images/uploads/' . $n['society_logo'] : '');
+                $author_link = $is_admin
+                    ? 'user_profile.php?id=' . (int) $n['author_id']
+                    : 'society_profile.php?id=' . (int) $n['author_id'];
                 $badge_class = $is_admin ? 'type-badge-admin' : 'type-badge-society';
                 $admin_category = strtolower(trim((string) ($n['admin_category'] ?? 'admin')));
                 $badge_text = $is_admin ? ($admin_category === 'lecturer' ? 'Lecturer' : 'Admin') : 'Society';
@@ -154,14 +157,18 @@ try {
             ?>
                 <div class="notice-card">
                     <?php if (!empty($avatar_path) && $avatar_path !== 'assets/images/default_avatar.png'): ?>
-                        <img src="<?= htmlspecialchars($avatar_path) ?>" class="notice-avatar" alt="Avatar">
+                        <a href="<?= htmlspecialchars($author_link) ?>" class="notice-author-link" aria-label="View profile">
+                            <img src="<?= htmlspecialchars($avatar_path) ?>" class="notice-avatar" alt="Avatar">
+                        </a>
                     <?php else: ?>
-                        <div class="notice-avatar"><i class="fas <?= $icon_class ?>"></i></div>
+                        <a href="<?= htmlspecialchars($author_link) ?>" class="notice-author-link" aria-label="View profile">
+                            <div class="notice-avatar"><i class="fas <?= $icon_class ?>"></i></div>
+                        </a>
                     <?php endif; ?>
 
                     <div class="notice-content">
                         <div class="notice-header">
-                            <h4 class="notice-author"><?= htmlspecialchars($author_name ?? 'Unknown') ?></h4>
+                            <h4 class="notice-author"><a href="<?= htmlspecialchars($author_link) ?>" class="notice-author-name-link"><?= htmlspecialchars($author_name ?? 'Unknown') ?></a></h4>
                             <span class="notice-author-type <?= $badge_class ?>"><?= $badge_text ?></span>
                             <span class="notice-time"><?= timeAgo($n['created_at']) ?></span>
                         </div>

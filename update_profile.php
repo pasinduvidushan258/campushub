@@ -10,6 +10,11 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+if (($_SESSION['active_mode'] ?? 'user') === 'society') {
+    header('Location: my_profile.php?error=society_mode_readonly');
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: my_profile.php');
     exit();

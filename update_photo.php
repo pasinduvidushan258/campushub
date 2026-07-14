@@ -8,6 +8,11 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+if (($_SESSION['active_mode'] ?? 'user') === 'society') {
+    header('Location: my_profile.php?error=society_mode_readonly');
+    exit();
+}
+
 $user_id = $_SESSION['user_id'];
 $photo_type = $_POST['photo_type'] ?? ''; // identify if it's 'avatar' or 'cover'
 

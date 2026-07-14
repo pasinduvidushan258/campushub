@@ -317,7 +317,7 @@ include 'includes/header.php';
                             $favatar = !empty($f['avatar_url']) && $f['avatar_url'] !== 'assets/images/default_avatar.png'
                                 ? app_url($f['avatar_url']) : '';
                         ?>
-                        <article class="dashboard-follower-card">
+                        <a href="user_profile.php?id=<?= (int) $f['id'] ?>" class="dashboard-follower-card" style="text-decoration:none; display:block;">
                             <?php if ($favatar): ?>
                                 <img src="<?= $favatar ?>" class="soc-follower-avatar" alt="<?= htmlspecialchars($f['fullname']) ?>">
                             <?php else: ?>
@@ -325,7 +325,7 @@ include 'includes/header.php';
                             <?php endif; ?>
                             <h4><?= htmlspecialchars($f['fullname']) ?></h4>
                             <p>Follower</p>
-                        </article>
+                        </a>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>

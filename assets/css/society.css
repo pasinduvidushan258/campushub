@@ -247,10 +247,159 @@
 
 .soc-verified-badge { color: #3b82f6; font-size: 1.05rem; }
 
+.soc-public-page {
+    max-width: 1240px;
+    margin: 28px auto 38px;
+    padding: 0 22px;
+}
+
+.soc-public-page .soc-header {
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.38);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+    backdrop-filter: blur(10px);
+}
+
+.soc-public-page .soc-cover {
+    height: 280px;
+}
+
+.soc-public-page .soc-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.35));
+    pointer-events: none;
+}
+
+.soc-public-page .soc-info-section {
+    padding: 0 30px 26px;
+    gap: 24px;
+}
+
+.soc-public-page .soc-logo-wrapper {
+    margin-top: -72px;
+}
+
+.soc-public-page .soc-logo-img {
+    width: 150px;
+    height: 150px;
+    border: 4px solid #18191a;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+}
+
+.soc-public-page .soc-name {
+    font-size: clamp(1.8rem, 2.2vw, 2.5rem);
+    line-height: 1.08;
+    margin: 0;
+}
+
+.soc-public-page .soc-tagline {
+    margin-top: 8px;
+    color: #c2c7ce;
+}
+
+.soc-public-page .soc-meta {
+    margin-top: 10px;
+    gap: 8px;
+}
+
+.soc-public-page .soc-meta span {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 999px;
+    padding: 6px 11px;
+}
+
+.soc-public-page .soc-tabs-container {
+    margin-top: 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 8px;
+    background: rgba(24, 25, 26, 0.96);
+}
+
+.soc-public-page .soc-tab {
+    border-radius: 10px;
+    font-weight: 700;
+    padding: 11px 16px;
+}
+
+.soc-public-page .soc-tab.active {
+    background: linear-gradient(135deg, #F97316, #ea6910);
+}
+
+.soc-public-page .soc-content {
+    margin-top: 18px;
+}
+
+.soc-public-page .soc-events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.soc-public-page .soc-public-event-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.soc-public-page .soc-public-event-card .event-poster-wrap {
+    height: 190px;
+}
+
+.soc-public-page .soc-public-event-card .event-body {
+    padding: 16px;
+}
+
+.soc-public-page .soc-public-event-card .event-meta-row {
+    color: #bac0c7;
+}
+
+.soc-public-page .soc-public-event-card .action-btn-details {
+    margin-left: auto;
+}
+
+.soc-public-page .info-card,
+.soc-public-page .soc-event-card,
+.soc-public-page .soc-follower-card {
+    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+}
+
+.soc-public-page .soc-event-card,
+.soc-public-page .soc-follower-card {
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.soc-public-page .soc-event-card:hover,
+.soc-public-page .soc-follower-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(249, 115, 22, 0.42);
+}
+
+.soc-public-page .soc-follower-card p {
+    color: #e4e8ec;
+}
+
+.soc-public-page .soc-verified-badge {
+    color: #f97316;
+}
+
 @media (max-width: 640px) {
     .soc-info-section { flex-direction: column; align-items: flex-start; }
     .soc-actions { width: 100%; }
     .soc-actions .btn-primary, .soc-actions .btn-secondary { flex: 1; }
+
+    .soc-public-page {
+        padding: 0 14px;
+    }
+
+    .soc-public-page .soc-cover {
+        height: 210px;
+    }
 }
 
 /* ==================================================

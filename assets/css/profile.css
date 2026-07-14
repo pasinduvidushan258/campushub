@@ -32,6 +32,23 @@ body {
     animation: profile-fade-in 0.45s ease;
 }
 
+.profile-readonly-banner {
+    margin-bottom: 14px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: rgba(249, 115, 22, 0.14);
+    border: 1px solid rgba(249, 115, 22, 0.32);
+    color: #ffedd5;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-readonly-banner i {
+    color: var(--profile-accent);
+}
+
 @keyframes profile-fade-in {
     from {
         opacity: 0;
@@ -413,6 +430,106 @@ body {
     display: inline-flex;
 }
 
+.public-profile .public-info-section {
+    padding-bottom: 24px;
+}
+
+.public-profile .profile-avatar-wrapper {
+    margin-top: -66px;
+}
+
+.public-content {
+    margin-top: 20px;
+}
+
+.public-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.public-stat-card {
+    background: #1b1e24;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px;
+    display: grid;
+    gap: 6px;
+}
+
+.public-stat-card i {
+    color: var(--profile-accent);
+}
+
+.public-stat-card span {
+    color: var(--profile-muted);
+    font-size: 0.82rem;
+}
+
+.public-stat-card strong {
+    font-size: 1.32rem;
+    color: #eef2f7;
+}
+
+.public-about-grid {
+    margin-bottom: 18px;
+}
+
+.public-note {
+    color: var(--profile-muted);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.public-panels-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.public-mini-list {
+    display: grid;
+    gap: 10px;
+}
+
+.public-mini-row {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 11px 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.public-mini-row:hover {
+    border-color: rgba(249, 115, 22, 0.4);
+    background: rgba(249, 115, 22, 0.08);
+}
+
+.public-mini-row strong {
+    display: block;
+    color: #eef2f7;
+    font-size: 0.95rem;
+}
+
+.public-mini-row span {
+    display: block;
+    margin-top: 2px;
+    color: #aeb5be;
+    font-size: 0.8rem;
+}
+
+.public-mini-row em {
+    color: #cfd5dd;
+    font-style: normal;
+    align-self: center;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -551,6 +668,11 @@ body {
 
     .profile-actions {
         margin-left: 0;
+    }
+
+    .public-stats-grid,
+    .public-panels-grid {
+        grid-template-columns: 1fr;
     }
 }
 
