@@ -22,20 +22,23 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$user_id]);
 $saved_events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$saved_count = count($saved_events);
 ?>
 
 <link rel="stylesheet" href="assets/css/event.css">
 
-<body class="saved-events-page">
-
 <div class="container saved-events-shell">
-    <div class="saved-events-header">
-        <div>
-            <p class="eyebrow">Your saved list</p>
+    <div class="saved-events-header saved-events-header--compact">
+        <div class="saved-events-title-row">
             <h1>Saved Events</h1>
-            <p class="saved-events-copy">Keep track of the activities you want to revisit later.</p>
+            <?php if ($saved_count > 0): ?>
+                <span class="saved-events-count"><?php echo $saved_count; ?> saved</span>
+            <?php endif; ?>
         </div>
-        <a href="events.php" class="btn btn-primary">Browse More Events</a>
+        <a href="events.php" class="saved-events-cta saved-events-cta--header">
+            <i class="fas fa-compass"></i>
+            Browse Events
+        </a>
     </div>
 
     <?php if (empty($saved_events)): ?>
@@ -73,7 +76,9 @@ $saved_events = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="saved-event-actions">
                             <a href="event_details.php?id=<?= $event['id'] ?>" class="action-btn-details">View Details</a>
                             <button class="action-btn save-btn saved" data-id="<?= $event['id'] ?>">
-                                <i class="fas fa-bookmark"></i> <span class="saves-count"><?= $event['saves_count'] ?></span> Remove
+                                <i class="fas fa-bookmark"></i>
+                                <span class="saves-count"><?= $event['saves_count'] ?></span>
+                                <span>Remove</span>
                             </button>
                         </div>
                     </div>

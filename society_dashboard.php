@@ -1,86 +1,107 @@
 <?php
-// society_dashboard.php
-// Management view for a society's own admin (the user who created/owns it).
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 require_once 'config/database.php';
 require_once 'includes/function.php';
 
 if (!isLoggedIn()) {
-    header("Location: login.php");
+    header('Location: login.php');
     exit();
 }
 
 $society_id = (int) ($_GET['id'] ?? ($_SESSION['active_society_id'] ?? 0));
 
-$stmt = $pdo->prepare("SELECT * FROM societies WHERE id = ?");
+$stmt = $pdo->prepare('SELECT * FROM societies WHERE id = ?');
 $stmt->execute([$society_id]);
 $society = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$society) {
-    header("Location: societies.php");
+    header('Location: societies.php');
     exit();
 }
 
-// Only the owning admin may view/manage this dashboard
 if ((int) $society['admin_id'] !== (int) getUserId()) {
-    header("Location: society_profile.php?id=" . $society_id);
+    header('Location: society_profile.php?id=' . $society_id);
     exit();
 }
 
-$name        = htmlspecialchars($society['society_name']);
-$faculty     = htmlspecialchars($society['faculty'] ?? '');
+$name = htmlspecialchars($society['society_name']);
+$faculty = htmlspecialchars($society['faculty'] ?? '');
 $description = htmlspecialchars($society['description'] ?? 'No description added yet.');
-$vision      = htmlspecialchars($society['vision'] ?? '');
-$mission     = htmlspecialchars($society['mission'] ?? '');
-$address     = htmlspecialchars($society['address'] ?? '');
-$email1      = htmlspecialchars($society['email_1'] ?? '');
-$email2      = htmlspecialchars($society['email_2'] ?? '');
-$contact     = htmlspecialchars($society['contact_number'] ?? '');
-$website     = htmlspecialchars($society['website_url'] ?? '');
-$facebook    = htmlspecialchars($society['facebook_url'] ?? '');
-$instagram   = htmlspecialchars($society['instagram_link'] ?? '');
-$founded     = !empty($society['founded_date']) ? date('F Y', strtotime($society['founded_date'])) : 'Not specified';
+$vision = htmlspecialchars($society['vision'] ?? '');
+$mission = htmlspecialchars($society['mission'] ?? '');
+$address = htmlspecialchars($society['address'] ?? '');
+$email1 = htmlspecialchars($society['email_1'] ?? '');
+$email2 = htmlspecialchars($society['email_2'] ?? '');
+$contact = htmlspecialchars($society['contact_number'] ?? '');
+$website = htmlspecialchars($society['website_url'] ?? '');
+$facebook = htmlspecialchars($society['facebook_url'] ?? '');
+$instagram = htmlspecialchars($society['instagram_link'] ?? '');
+$foundedSource = $society['founded_date'] ?? '';
+if (empty($foundedSource) && !empty($society['created_at'])) {
+    $foundedSource = date('Y-m-d', strtotime($society['created_at']));
+}
+$founded = !empty($foundedSource) ? date('F Y', strtotime($foundedSource)) : 'Not specified';
 
-$has_logo  = !empty($society['logo_path']) && file_exists('assets/images/uploads/' . $society['logo_path']);
+$has_logo = !empty($society['logo_path']) && file_exists('assets/images/uploads/' . $society['logo_path']);
 $has_cover = !empty($society['cover_path']) && file_exists('assets/images/uploads/' . $society['cover_path']);
-$logo_url  = $has_logo ? 'assets/images/uploads/' . htmlspecialchars($society['logo_path']) : '';
+$logo_url = $has_logo ? 'assets/images/uploads/' . htmlspecialchars($society['logo_path']) : '';
 $cover_url = $has_cover ? 'assets/images/uploads/' . htmlspecialchars($society['cover_path']) : '';
 
-// Events created by this society
-$eventStmt = $pdo->prepare("SELECT * FROM events WHERE society_id = ? ORDER BY event_date DESC");
+$eventStmt = $pdo->prepare("SELECT e.*,
+    (SELECT COUNT(*) FROM event_likes WHERE event_id = e.id) AS likes_count,
+    (SELECT COUNT(*) FROM saved_events WHERE event_id = e.id) AS saves_count
+    FROM events e
+    WHERE e.society_id = ?
+    ORDER BY e.event_date DESC, e.start_time DESC");
 $eventStmt->execute([$society_id]);
 $events = $eventStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Followers
-$followerStmt = $pdo->prepare("
-    SELECT u.id, u.fullname, u.avatar_url
+$upcomingCount = 0;
+$ongoingCount = 0;
+$completedCount = 0;
+foreach ($events as $event) {
+    $status = strtolower((string) ($event['status'] ?? ''));
+    if ($status === 'upcoming') {
+        $upcomingCount++;
+    } elseif ($status === 'ongoing') {
+        $ongoingCount++;
+    } elseif ($status === 'completed') {
+        $completedCount++;
+    }
+}
+
+$followerStmt = $pdo->prepare('SELECT u.id, u.fullname, u.avatar_url
     FROM society_followers sf
     JOIN users u ON u.id = sf.user_id
     WHERE sf.society_id = ?
-    ORDER BY sf.created_at DESC
-");
+    ORDER BY sf.created_at DESC');
 $followerStmt->execute([$society_id]);
 $followers = $followerStmt->fetchAll(PDO::FETCH_ASSOC);
 $followerCount = count($followers);
 
+$memberStmt = $pdo->prepare('SELECT COUNT(*) FROM society_managers WHERE society_id = ?');
+$memberStmt->execute([$society_id]);
+$memberCount = (int) $memberStmt->fetchColumn();
+
+$adminEmail = '';
+$adminEmailStmt = $pdo->prepare('SELECT email FROM users WHERE id = ? LIMIT 1');
+$adminEmailStmt->execute([(int) $society['admin_id']]);
+$adminEmailRaw = trim((string) $adminEmailStmt->fetchColumn());
+if ($adminEmailRaw !== '') {
+    $adminEmail = htmlspecialchars($adminEmailRaw);
+}
+
 include 'includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $name ?> - Manage Society | CampusHub</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/society.css">
-    <link rel="stylesheet" href="assets/css/add-event-modal.css">
-</head>
-<body>
 
-<div class="soc-container">
+<link rel="stylesheet" href="assets/css/event.css">
+<link rel="stylesheet" href="assets/css/society.css">
+<link rel="stylesheet" href="assets/css/add-event-modal.css">
+
+<div class="soc-container soc-dashboard-page">
 
     <div class="soc-header">
         <form action="update_society_photo.php" method="POST" enctype="multipart/form-data" id="coverForm" style="display:none;">
@@ -117,10 +138,11 @@ include 'includes/header.php';
                         <i class="fas fa-check-circle soc-verified-badge" title="Verified Society"></i>
                     <?php endif; ?>
                 </h1>
-                <p class="soc-tagline"><?= $faculty ? $faculty : 'Welcome to our official page!' ?></p>
+                <p class="soc-tagline"><?= $faculty ? $faculty : 'Welcome to your management dashboard' ?></p>
                 <div class="soc-meta">
                     <span><i class="fas fa-users"></i> <?= $followerCount ?> follower<?= $followerCount === 1 ? '' : 's' ?></span>
                     <span><i class="fas fa-calendar"></i> <?= count($events) ?> event<?= count($events) === 1 ? '' : 's' ?></span>
+                    <span><i class="fas fa-user-friends"></i> <?= $memberCount ?> manager<?= $memberCount === 1 ? '' : 's' ?></span>
                     <span><i class="fas fa-shield-alt"></i> <?= ucfirst($society['status']) ?></span>
                 </div>
             </div>
@@ -128,6 +150,37 @@ include 'includes/header.php';
             <div class="soc-actions">
                 <button class="btn-primary" onclick="openAddEventModal()"><i class="fas fa-plus"></i> Add Event</button>
                 <button class="btn-secondary" onclick="openEditModal()"><i class="fas fa-cog"></i> Manage</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-stats-grid">
+        <div class="dashboard-stat-card">
+            <i class="fas fa-calendar-check"></i>
+            <div>
+                <span>Total Events</span>
+                <strong><?= count($events) ?></strong>
+            </div>
+        </div>
+        <div class="dashboard-stat-card">
+            <i class="fas fa-hourglass-half"></i>
+            <div>
+                <span>Upcoming</span>
+                <strong><?= $upcomingCount ?></strong>
+            </div>
+        </div>
+        <div class="dashboard-stat-card">
+            <i class="fas fa-spinner"></i>
+            <div>
+                <span>Ongoing</span>
+                <strong><?= $ongoingCount ?></strong>
+            </div>
+        </div>
+        <div class="dashboard-stat-card">
+            <i class="fas fa-flag-checkered"></i>
+            <div>
+                <span>Completed</span>
+                <strong><?= $completedCount ?></strong>
             </div>
         </div>
     </div>
@@ -142,42 +195,57 @@ include 'includes/header.php';
     <div class="soc-content">
 
         <div id="about" class="tab-pane active">
-            <div class="info-card">
-                <h3><i class="fas fa-info-circle"></i> About</h3>
-                <p style="color:#cfd2d6; line-height:1.6;"><?= nl2br($description) ?></p>
-            </div>
+            <div class="dashboard-about-grid">
+                <div class="info-card dashboard-primary-card">
+                    <h3><i class="fas fa-address-card"></i> Contact &amp; Details</h3>
+                    <ul class="info-list">
+                        <li><strong>Faculty:</strong> <?= $faculty ?: 'Not specified' ?></li>
+                        <li><strong>Founded:</strong> <?= $founded ?></li>
+                        <li><strong>Address:</strong> <?= $address ?: 'Not specified' ?></li>
+                        <?php if ($adminEmail): ?><li><strong>Admin Email:</strong> <?= $adminEmail ?></li><?php endif; ?>
+                        <li><strong>Primary Email:</strong> <?= $email1 ?: 'Not specified' ?></li>
+                        <li><strong>Secondary Email:</strong> <?= $email2 ?: 'Not specified' ?></li>
+                        <?php if ($contact): ?><li><strong>Contact No:</strong> <?= $contact ?></li><?php endif; ?>
+                        <?php if ($website): ?><li><strong>Website:</strong> <a href="<?= $website ?>" target="_blank" class="soc-inline-link"><?= $website ?></a></li><?php endif; ?>
+                        <?php if ($facebook): ?><li><strong>Facebook:</strong> <a href="<?= $facebook ?>" target="_blank" class="soc-inline-link">View page</a></li><?php endif; ?>
+                        <?php if ($instagram): ?><li><strong>Instagram:</strong> <a href="<?= $instagram ?>" target="_blank" class="soc-inline-link">View page</a></li><?php endif; ?>
+                    </ul>
+                </div>
 
-            <?php if ($vision || $mission): ?>
-            <div class="info-card">
-                <h3><i class="fas fa-bullseye"></i> Vision &amp; Mission</h3>
-                <ul class="info-list">
-                    <?php if ($vision): ?><li><strong>Vision:</strong> <?= nl2br($vision) ?></li><?php endif; ?>
-                    <?php if ($mission): ?><li><strong>Mission:</strong> <?= nl2br($mission) ?></li><?php endif; ?>
-                </ul>
-            </div>
-            <?php endif; ?>
+                <div class="dashboard-secondary-stack">
+                    <div class="info-card">
+                        <h3><i class="fas fa-info-circle"></i> About</h3>
+                        <p class="soc-prose"><?= nl2br($description) ?></p>
+                    </div>
 
-            <div class="info-card">
-                <h3><i class="fas fa-address-card"></i> Contact &amp; Details</h3>
-                <ul class="info-list">
-                    <li><strong>Faculty:</strong> <?= $faculty ?: 'Not specified' ?></li>
-                    <li><strong>Founded:</strong> <?= $founded ?></li>
-                    <li><strong>Address:</strong> <?= $address ?: 'Not specified' ?></li>
-                    <li><strong>Primary Email:</strong> <?= $email1 ?></li>
-                    <li><strong>Secondary Email:</strong> <?= $email2 ?></li>
-                    <?php if ($contact): ?><li><strong>Contact No:</strong> <?= $contact ?></li><?php endif; ?>
-                    <?php if ($website): ?><li><strong>Website:</strong> <a href="<?= $website ?>" target="_blank" style="color:#F97316;"><?= $website ?></a></li><?php endif; ?>
-                    <?php if ($facebook): ?><li><strong>Facebook:</strong> <a href="<?= $facebook ?>" target="_blank" style="color:#F97316;">View page</a></li><?php endif; ?>
-                    <?php if ($instagram): ?><li><strong>Instagram:</strong> <a href="<?= $instagram ?>" target="_blank" style="color:#F97316;">View page</a></li><?php endif; ?>
-                </ul>
+                    <?php if ($vision || $mission): ?>
+                    <div class="info-card">
+                        <h3><i class="fas fa-bullseye"></i> Vision &amp; Mission</h3>
+                        <ul class="info-list">
+                            <?php if ($vision): ?><li><strong>Vision:</strong> <?= nl2br($vision) ?></li><?php endif; ?>
+                            <?php if ($mission): ?><li><strong>Mission:</strong> <?= nl2br($mission) ?></li><?php endif; ?>
+                        </ul>
+                    </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 
         <div id="photos" class="tab-pane">
             <?php if ($has_logo || $has_cover): ?>
-                <div class="soc-photos-grid">
-                    <?php if ($has_cover): ?><img src="<?= $cover_url ?>" alt="Cover"><?php endif; ?>
-                    <?php if ($has_logo): ?><img src="<?= $logo_url ?>" alt="Logo"><?php endif; ?>
+                <div class="dashboard-photo-grid">
+                    <?php if ($has_cover): ?>
+                        <article class="dashboard-photo-card">
+                            <img src="<?= $cover_url ?>" alt="Cover">
+                            <span>Cover Photo</span>
+                        </article>
+                    <?php endif; ?>
+                    <?php if ($has_logo): ?>
+                        <article class="dashboard-photo-card">
+                            <img src="<?= $logo_url ?>" alt="Logo">
+                            <span>Society Logo</span>
+                        </article>
+                    <?php endif; ?>
                 </div>
             <?php else: ?>
                 <div class="soc-empty-state">
@@ -190,22 +258,45 @@ include 'includes/header.php';
 
         <div id="events" class="tab-pane">
             <?php if (!empty($events)): ?>
-                <div class="soc-events-grid">
+                <div class="events-grid dashboard-events-grid">
                     <?php foreach ($events as $ev): ?>
                         <?php
-                            $poster = !empty($ev['poster_path']) && file_exists($ev['poster_path']) ? $ev['poster_path'] : '';
+                            $eventPoster = !empty($ev['poster_path']) && file_exists('assets/images/events/' . $ev['poster_path'])
+                                ? 'assets/images/events/' . htmlspecialchars($ev['poster_path'])
+                                : '';
+
+                            $statusValue = strtolower((string) ($ev['status'] ?? 'upcoming'));
+                            if (!in_array($statusValue, ['upcoming', 'ongoing', 'completed'], true)) {
+                                $statusValue = 'upcoming';
+                            }
                         ?>
-                        <a href="event_details.php?id=<?= $ev['id'] ?>" class="soc-event-card" style="text-decoration:none;">
-                            <?php if ($poster): ?>
-                                <img src="<?= htmlspecialchars($poster) ?>" alt="<?= htmlspecialchars($ev['title']) ?>">
-                            <?php endif; ?>
-                            <div class="soc-event-card-body">
-                                <h4><?= htmlspecialchars($ev['title']) ?></h4>
-                                <p><i class="fas fa-calendar-day"></i> <?= date('M d, Y', strtotime($ev['event_date'])) ?></p>
-                                <?php if (!empty($ev['venue'])): ?><p><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($ev['venue']) ?></p><?php endif; ?>
-                                <span class="soc-status-pill"><?= htmlspecialchars($ev['status']) ?></span>
+                        <article class="event-card">
+                            <div class="event-poster-wrap">
+                                <?php if ($eventPoster): ?>
+                                    <img src="<?= $eventPoster ?>" alt="<?= htmlspecialchars($ev['title']) ?>">
+                                <?php else: ?>
+                                    <div class="event-poster-placeholder">
+                                        <i class="fas fa-image"></i>
+                                        <span>No Flyer</span>
+                                    </div>
+                                <?php endif; ?>
+                                <span class="event-status-badge badge-<?= htmlspecialchars($statusValue) ?>"><?= ucfirst($statusValue) ?></span>
+                                <span class="event-category-chip"><?= htmlspecialchars($ev['category'] ?? 'General') ?></span>
                             </div>
-                        </a>
+
+                            <div class="event-body">
+                                <h3 class="event-title"><?= htmlspecialchars($ev['title']) ?></h3>
+                                <div class="event-meta">
+                                    <div class="event-meta-row"><i class="fas fa-calendar"></i> <?= date('d M Y', strtotime($ev['event_date'])) ?> at <?= date('h:i A', strtotime($ev['start_time'])) ?></div>
+                                    <div class="event-meta-row"><i class="fas fa-map-marker-alt"></i> <?= !empty($ev['venue']) ? htmlspecialchars($ev['venue']) : 'Venue to be announced' ?></div>
+                                    <div class="event-meta-row"><i class="fas fa-heart"></i> <?= (int) $ev['likes_count'] ?> likes <span class="event-row-dot"></span> <i class="fas fa-bookmark"></i> <?= (int) $ev['saves_count'] ?> saves</div>
+                                </div>
+
+                                <div class="event-footer">
+                                    <a href="event_details.php?id=<?= (int) $ev['id'] ?>" class="action-btn-details">View Details</a>
+                                </div>
+                            </div>
+                        </article>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
@@ -219,20 +310,21 @@ include 'includes/header.php';
 
         <div id="followers" class="tab-pane">
             <?php if (!empty($followers)): ?>
-                <div class="soc-followers-grid">
+                <div class="dashboard-followers-grid">
                     <?php foreach ($followers as $f): ?>
                         <?php
                             $favatar = !empty($f['avatar_url']) && $f['avatar_url'] !== 'assets/images/default_avatar.png'
-                                ? $f['avatar_url'] : '';
+                                ? '/campushub/' . htmlspecialchars($f['avatar_url']) : '';
                         ?>
-                        <div class="soc-follower-card">
+                        <article class="dashboard-follower-card">
                             <?php if ($favatar): ?>
-                                <img src="<?= htmlspecialchars($favatar) ?>" class="soc-follower-avatar" alt="">
+                                <img src="<?= $favatar ?>" class="soc-follower-avatar" alt="<?= htmlspecialchars($f['fullname']) ?>">
                             <?php else: ?>
-                                <div class="soc-follower-avatar" style="display:flex;align-items:center;justify-content:center;"><i class="fas fa-user"></i></div>
+                                <div class="soc-follower-avatar dashboard-fallback-avatar"><i class="fas fa-user"></i></div>
                             <?php endif; ?>
-                            <p><?= htmlspecialchars($f['fullname']) ?></p>
-                        </div>
+                            <h4><?= htmlspecialchars($f['fullname']) ?></h4>
+                            <p>Follower</p>
+                        </article>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
@@ -247,7 +339,6 @@ include 'includes/header.php';
     </div>
 </div>
 
-<!-- ===================== Add Event Modal ===================== -->
 <div id="addEventModal" class="ae-modal-overlay">
     <div class="ae-modal">
         <div class="ae-modal-header">
@@ -345,18 +436,19 @@ include 'includes/header.php';
 
 <script>
 function openSocTab(evt, tabName) {
-    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.soc-tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(function (el) {
+        el.classList.remove('active');
+    });
+    document.querySelectorAll('.soc-tab').forEach(function (el) {
+        el.classList.remove('active');
+    });
     document.getElementById(tabName).classList.add('active');
     evt.currentTarget.classList.add('active');
 }
+
 function openEditModal() {
     window.location.href = 'edit_society.php?id=<?= $society_id ?>';
 }
-
-// ===========================
-// Add Event Modal
-// ===========================
 
 const addEventModal = document.getElementById('addEventModal');
 const addEventForm = document.getElementById('addEventForm');
@@ -376,7 +468,6 @@ function closeAddEventModal() {
     aeFormMessage.className = 'ae-form-message';
 }
 
-// Close when clicking outside the modal box
 addEventModal.addEventListener('click', function (e) {
     if (e.target === addEventModal) {
         closeAddEventModal();
@@ -398,9 +489,8 @@ addEventForm.addEventListener('submit', function (e) {
         method: 'POST',
         body: formData
     })
-    .then(res => res.json())
-    .then(data => {
-
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
         aeSubmitBtn.disabled = false;
         aeSubmitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Event';
 
@@ -408,7 +498,6 @@ addEventForm.addEventListener('submit', function (e) {
             aeFormMessage.textContent = data.message || 'Event created successfully.';
             aeFormMessage.className = 'ae-form-message ae-success';
             aeFormMessage.style.display = 'block';
-
             setTimeout(function () {
                 window.location.reload();
             }, 900);
@@ -426,8 +515,4 @@ addEventForm.addEventListener('submit', function (e) {
         aeFormMessage.style.display = 'block';
     });
 });
-
 </script>
-
-</body>
-</html>

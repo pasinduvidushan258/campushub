@@ -113,8 +113,24 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                         }
                     }
 
+                    $society_avatar_tag = '<i class="fas fa-users"></i>';
+                    if (
+                        isset($pdo)
+                        && $active_mode === 'society'
+                        && !empty($_SESSION['active_society_id'])
+                    ) {
+                        $active_soc_stmt = $pdo->prepare("SELECT logo_path FROM societies WHERE id = ? LIMIT 1");
+                        $active_soc_stmt->execute([(int) $_SESSION['active_society_id']]);
+                        $active_soc_data = $active_soc_stmt->fetch();
+                        $active_soc_logo = trim((string) ($active_soc_data['logo_path'] ?? ''));
+
+                        if ($active_soc_logo !== '' && file_exists('assets/images/uploads/' . $active_soc_logo)) {
+                            $society_avatar_tag = '<img src="/campushub/assets/images/uploads/' . htmlspecialchars($active_soc_logo) . '" alt="Society" class="avatar-thumb">';
+                        }
+                    }
+
                     // Determine which avatar to show in the top-right profile button based on the active mode
-                    $top_avatar = ($active_mode === 'society') ? '<i class="fas fa-users"></i>' : $user_avatar_tag;
+                    $top_avatar = ($active_mode === 'society') ? $society_avatar_tag : $user_avatar_tag;
                     ?>
 
                     
@@ -125,7 +141,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                         <i class="fas fa-chevron-down" style="font-size: 0.8rem; margin-left: 5px;"></i>
                     </button>
 
-                    <div class="profile-dropdown" id="profileDropdown" style="width: 340px;">
+                    <div class="profile-dropdown" id="profileDropdown" style="width: 320px;">
 
                         <?php
                         require_once 'config/database.php';
@@ -140,12 +156,20 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                             $has_society   = (count($all_societies) > 0);
                         }
 
+                        $build_society_avatar = function ($soc) {
+                            $logo = trim((string) ($soc['logo_path'] ?? ''));
+                            if ($logo !== '' && file_exists('assets/images/uploads/' . $logo)) {
+                                return '<img src="/campushub/assets/images/uploads/' . htmlspecialchars($logo) . '" alt="Society" class="avatar-thumb">';
+                            }
+                            return '<i class="fas fa-users"></i>';
+                        };
+
                         // Resolve the display name and icon for the currently active profile
                         $active_name = $_SESSION['fullname'];
                         $active_icon = $user_avatar_tag;
                         if ($active_mode === 'society' && isset($_SESSION['active_society_name'])) {
                             $active_name = $_SESSION['active_society_name'];
-                            $active_icon = '<i class="fas fa-users"></i>';
+                            $active_icon = $society_avatar_tag;
                         }
                         ?>
 
@@ -165,7 +189,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                                 <?php if($active_mode === 'society'): ?>
                                     <!-- Currently in society mode — show personal profile as the switch target -->
                                     <div class="fb-profile-row switch-profile-item quick-switch-btn" data-type="user" data-id="0" data-status="verified">
-                                        <div class="fb-avatar-circle"><i class="fas fa-user"></i></div>
+                                        <div class="fb-avatar-circle"><?php echo $user_avatar_tag; ?></div>
                                         <span class="fb-profile-name"><?php echo htmlspecialchars($_SESSION['fullname']); ?></span>
                                         <div class="fb-switch-icon-wrapper"><i class="fas fa-sync-alt switchIcon"></i></div>
                                     </div>
@@ -176,12 +200,13 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                                         // Display the first society as a quick-switch option
                                         $first_soc        = $all_societies[0];
                                         $is_first_pending = ($first_soc['status'] === 'pending');
+                                        $first_soc_avatar = $build_society_avatar($first_soc);
                                         ?>
                                         <div class="fb-profile-row switch-profile-item quick-switch-btn"
                                              data-type="society"
                                              data-id="<?php echo $first_soc['id']; ?>"
                                              data-status="<?php echo $first_soc['status']; ?>">
-                                            <div class="fb-avatar-circle society-avatar"><i class="fas fa-users"></i></div>
+                                            <div class="fb-avatar-circle society-avatar <?php echo strpos($first_soc_avatar, '<img') !== false ? 'has-image' : ''; ?>"><?php echo $first_soc_avatar; ?></div>
                                             <span class="fb-profile-name">
                                                 <?php echo htmlspecialchars($first_soc['society_name']); ?>
                                                 <?php if($is_first_pending): ?>
@@ -282,7 +307,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                                 </button> -->
 
                                 <!-- Settings and privacy - Modified to show separate items -->
-                                <details class="mobile-accordion" open>
+                                <details class="mobile-accordion">
                                     <summary class="mobile-accordion-summary">
                                         <span class="mobile-accordion-title">
                                             <i class="fas fa-cog"></i>
@@ -338,7 +363,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                                 <div class="fb-profile-row <?php echo ($active_mode === 'user') ? 'active-profile' : 'switch-profile-item quick-switch-btn'; ?>"
                                      data-type="user" data-id="0" data-status="verified"
                                      style="margin-bottom: 8px;">
-                                    <div class="fb-avatar-circle"><i class="fas fa-user"></i></div>
+                                    <div class="fb-avatar-circle"><?php echo $user_avatar_tag; ?></div>
                                     <span class="fb-profile-name" style="flex-grow: 1;"><?php echo htmlspecialchars($_SESSION['fullname'] ?? 'User'); ?></span>
                                     <?php if ($active_mode === 'user'): ?>
                                         <i class="fas fa-check-circle fb-active-tick"></i>
@@ -360,13 +385,14 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                                         $_SESSION['active_society_id'] == $soc['id']
                                     );
                                     $is_pending = ($soc['status'] === 'pending');
+                                    $soc_avatar = $build_society_avatar($soc);
                                     ?>
                                     <div class="fb-profile-row <?php echo $is_this_active ? 'active-profile' : 'switch-profile-item quick-switch-btn'; ?>"
                                          data-type="society"
                                          data-id="<?php echo $soc['id']; ?>"
                                          data-status="<?php echo $soc['status']; ?>"
                                          style="margin-bottom: 5px;">
-                                        <div class="fb-avatar-circle society-avatar"><i class="fas fa-users"></i></div>
+                                        <div class="fb-avatar-circle society-avatar <?php echo strpos($soc_avatar, '<img') !== false ? 'has-image' : ''; ?>"><?php echo $soc_avatar; ?></div>
                                         <span class="fb-profile-name" style="flex-grow: 1;">
                                             <?php echo htmlspecialchars($soc['society_name']); ?>
                                             <?php if($is_pending): ?>

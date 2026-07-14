@@ -38,7 +38,11 @@ $contact     = htmlspecialchars($society['contact_number'] ?? '');
 $website     = htmlspecialchars($society['website_url'] ?? '');
 $facebook    = htmlspecialchars($society['facebook_url'] ?? '');
 $instagram   = htmlspecialchars($society['instagram_link'] ?? '');
-$founded     = !empty($society['founded_date']) ? date('F Y', strtotime($society['founded_date'])) : 'Not specified';
+$foundedSource = $society['founded_date'] ?? '';
+if (empty($foundedSource) && !empty($society['created_at'])) {
+    $foundedSource = date('Y-m-d', strtotime($society['created_at']));
+}
+$founded     = !empty($foundedSource) ? date('F Y', strtotime($foundedSource)) : 'Not specified';
 
 $has_logo  = !empty($society['logo_path']) && file_exists('assets/images/uploads/' . $society['logo_path']);
 $has_cover = !empty($society['cover_path']) && file_exists('assets/images/uploads/' . $society['cover_path']);
@@ -65,6 +69,14 @@ if (isLoggedIn()) {
     $checkStmt = $pdo->prepare("SELECT id FROM society_followers WHERE society_id = ? AND user_id = ?");
     $checkStmt->execute([$society_id, getUserId()]);
     $isFollowing = (bool) $checkStmt->fetchColumn();
+}
+
+$adminEmail = '';
+$adminEmailStmt = $pdo->prepare('SELECT email FROM users WHERE id = ? LIMIT 1');
+$adminEmailStmt->execute([(int) $society['admin_id']]);
+$adminEmailRaw = trim((string) $adminEmailStmt->fetchColumn());
+if ($adminEmailRaw !== '') {
+    $adminEmail = htmlspecialchars($adminEmailRaw);
 }
 
 include 'includes/header.php';
@@ -157,6 +169,7 @@ include 'includes/header.php';
                     <li><strong>Faculty:</strong> <?= $faculty ?: 'Not specified' ?></li>
                     <li><strong>Founded:</strong> <?= $founded ?></li>
                     <li><strong>Address:</strong> <?= $address ?: 'Not specified' ?></li>
+                    <?php if ($adminEmail): ?><li><strong>Admin Email:</strong> <?= $adminEmail ?></li><?php endif; ?>
                     <li><strong>Email:</strong> <?= $email1 ?></li>
                     <?php if ($contact): ?><li><strong>Contact No:</strong> <?= $contact ?></li><?php endif; ?>
                     <?php if ($website): ?><li><strong>Website:</strong> <a href="<?= $website ?>" target="_blank" style="color:#F97316;"><?= $website ?></a></li><?php endif; ?>

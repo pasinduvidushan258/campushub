@@ -252,3 +252,519 @@
     .soc-actions { width: 100%; }
     .soc-actions .btn-primary, .soc-actions .btn-secondary { flex: 1; }
 }
+
+/* ==================================================
+   Society Dashboard Premium Overrides
+   (Scoped to dashboard only)
+   ================================================== */
+
+.soc-dashboard-page {
+    max-width: 1240px;
+    margin: 28px auto 38px;
+    padding: 0 22px;
+}
+
+.soc-dashboard-page .soc-header {
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 20px 42px rgba(0,0,0,0.4);
+    overflow: hidden;
+    background: linear-gradient(165deg, rgba(255,255,255,0.03), rgba(255,255,255,0));
+    backdrop-filter: blur(10px);
+}
+
+.soc-dashboard-page .soc-cover {
+    height: 290px;
+    position: relative;
+}
+
+.soc-dashboard-page .soc-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.08), rgba(0,0,0,0.35));
+    pointer-events: none;
+}
+
+.soc-dashboard-page .edit-cover-btn,
+.soc-dashboard-page .edit-logo-btn {
+    border-radius: 10px;
+    border-color: rgba(255,255,255,0.18);
+    z-index: 2;
+}
+
+.soc-dashboard-page .edit-cover-btn:hover,
+.soc-dashboard-page .edit-logo-btn:hover {
+    border-color: rgba(249,115,22,0.45);
+    transform: translateY(-1px);
+}
+
+.soc-dashboard-page .soc-info-section {
+    padding: 0 30px 26px;
+    gap: 24px;
+}
+
+.soc-dashboard-page .soc-logo-wrapper {
+    margin-top: -72px;
+}
+
+.soc-dashboard-page .soc-logo-img {
+    width: 152px;
+    height: 152px;
+    border: 4px solid #18191a;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.36);
+}
+
+.soc-dashboard-page .soc-name {
+    font-size: clamp(1.8rem, 2.2vw, 2.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.soc-dashboard-page .soc-tagline {
+    margin-top: 8px;
+    color: #c1c5cc;
+    font-size: 1.05rem;
+}
+
+.soc-dashboard-page .soc-meta {
+    margin-top: 12px;
+    gap: 9px;
+}
+
+.soc-dashboard-page .soc-meta span {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 999px;
+    padding: 6px 11px;
+    font-size: 0.86rem;
+}
+
+.soc-dashboard-page .soc-actions {
+    margin-left: auto;
+}
+
+.soc-dashboard-page .btn-primary,
+.soc-dashboard-page .btn-secondary {
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.soc-dashboard-page .btn-primary {
+    background: linear-gradient(135deg, #F97316, #ea6910);
+}
+
+.dashboard-stats-grid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.dashboard-stat-card {
+    background: #1d1f24;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 13px 14px;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.dashboard-stat-card i {
+    color: #F97316;
+    font-size: 1rem;
+}
+
+.dashboard-stat-card span {
+    display: block;
+    color: #adb2ba;
+    font-size: 0.77rem;
+}
+
+.dashboard-stat-card strong {
+    color: #edf0f4;
+    font-size: 1.2rem;
+    line-height: 1.1;
+}
+
+.soc-dashboard-page .soc-tabs-container {
+    margin-top: 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 8px;
+    background: rgba(24,25,26,0.96);
+}
+
+.soc-dashboard-page .soc-tab {
+    border-radius: 10px;
+    font-weight: 700;
+    padding: 11px 16px;
+}
+
+.soc-dashboard-page .soc-tab.active {
+    background: linear-gradient(135deg, #F97316, #ea6910);
+}
+
+.soc-dashboard-page .soc-content {
+    margin-top: 18px;
+}
+
+.soc-dashboard-page .tab-pane {
+    animation: socDashFadeIn 0.28s ease;
+}
+
+@keyframes socDashFadeIn {
+    from { opacity: 0; transform: translateY(7px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-about-grid {
+    display: grid;
+    grid-template-columns: minmax(360px, 1.2fr) minmax(320px, 0.8fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.dashboard-primary-card {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.dashboard-secondary-stack {
+    grid-column: 2;
+    grid-row: 1;
+    display: grid;
+    gap: 16px;
+}
+
+.soc-dashboard-page .info-card {
+    border-radius: 14px;
+    border-color: rgba(255,255,255,0.08);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+}
+
+.soc-dashboard-page .info-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.soc-dashboard-page .info-list li strong {
+    min-width: 110px;
+    display: inline-block;
+}
+
+.soc-prose {
+    color: #cfd3d9;
+    line-height: 1.65;
+    margin: 0;
+}
+
+.soc-inline-link {
+    color: #F97316;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.soc-inline-link:hover {
+    text-decoration: underline;
+}
+
+.dashboard-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.dashboard-photo-card {
+    background: #18191a;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.dashboard-photo-card img {
+    width: 100%;
+    height: 210px;
+    object-fit: cover;
+    display: block;
+}
+
+.dashboard-photo-card span {
+    display: block;
+    padding: 10px 12px;
+    color: #d7dbe0;
+    font-weight: 600;
+    font-size: 0.86rem;
+}
+
+.dashboard-events-grid .event-card {
+    border-color: rgba(255,255,255,0.08);
+}
+
+.dashboard-events-grid .event-poster-wrap {
+    height: 200px;
+}
+
+.dashboard-events-grid .event-meta-row {
+    color: #bac0c7;
+}
+
+.dashboard-followers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+}
+
+.dashboard-follower-card {
+    background: #18191a;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    text-align: center;
+    padding: 18px 12px;
+}
+
+.dashboard-follower-card .soc-follower-avatar {
+    width: 74px;
+    height: 74px;
+    margin-bottom: 10px;
+}
+
+.dashboard-follower-card h4 {
+    margin: 0 0 4px;
+    color: #ecf0f3;
+    font-size: 0.96rem;
+}
+
+.dashboard-follower-card p {
+    margin: 0;
+    color: #aeb3bb;
+    font-size: 0.8rem;
+}
+
+.dashboard-fallback-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aab0b8;
+}
+
+@media (max-width: 960px) {
+    .dashboard-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-about-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-primary-card,
+    .dashboard-secondary-stack {
+        grid-column: auto;
+        grid-row: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .soc-dashboard-page {
+        margin-top: 14px;
+        padding: 0 14px;
+    }
+
+    .soc-dashboard-page .soc-cover {
+        height: 215px;
+    }
+
+    .soc-dashboard-page .soc-info-section {
+        padding: 0 18px 20px;
+    }
+
+    .soc-dashboard-page .soc-logo-wrapper {
+        margin-top: -56px;
+    }
+
+    .soc-dashboard-page .soc-logo-img {
+        width: 124px;
+        height: 124px;
+    }
+
+    .soc-dashboard-page .soc-actions {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .soc-dashboard-page .soc-actions .btn-primary,
+    .soc-dashboard-page .soc-actions .btn-secondary {
+        width: 100%;
+    }
+
+    .dashboard-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-photo-card img {
+        height: 180px;
+    }
+}
+
+/* ==================================================
+   Manage Society (edit_society.php) Premium Styles
+   ================================================== */
+
+.soc-edit-page {
+    max-width: 1100px;
+    margin-top: 20px;
+}
+
+.soc-edit-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.soc-edit-header h1 {
+    margin: 0;
+    color: #f3f4f6;
+    font-size: clamp(1.55rem, 2vw, 2rem);
+    letter-spacing: -0.02em;
+}
+
+.soc-edit-back-btn {
+    background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+    border: 1px solid rgba(255,255,255,0.26);
+    color: #f8fafc;
+    border-radius: 12px;
+    padding: 11px 16px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.22);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.soc-edit-back-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(249,115,22,0.58);
+    background: linear-gradient(135deg, rgba(249,115,22,0.22), rgba(234,88,12,0.14));
+    box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+}
+
+.soc-edit-back-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.18), 0 10px 22px rgba(0,0,0,0.3);
+}
+
+.soc-edit-header p {
+    margin: 6px 0 0;
+    color: #9ca3af;
+    font-size: 0.92rem;
+}
+
+.soc-edit-form-shell {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 14px;
+    margin-bottom: 34px;
+}
+
+.soc-edit-card {
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.24);
+}
+
+.soc-edit-card h3 {
+    font-size: 1.18rem;
+    margin-bottom: 14px;
+}
+
+.soc-edit-fields {
+    display: grid;
+    gap: 12px;
+}
+
+.soc-edit-fields.two-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.soc-edit-field {
+    display: grid;
+    gap: 6px;
+}
+
+.soc-edit-field.full-row {
+    grid-column: 1 / -1;
+}
+
+.soc-edit-field label {
+    color: #b8bec7;
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.soc-edit-field input,
+.soc-edit-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: #24262c;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: #f1f5f9;
+    padding: 11px 12px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.soc-edit-field textarea {
+    resize: vertical;
+    min-height: 86px;
+}
+
+.soc-edit-field input:focus,
+.soc-edit-field textarea:focus {
+    outline: none;
+    border-color: rgba(249,115,22,0.75);
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.16);
+}
+
+.soc-edit-field input[readonly] {
+    color: #cbd5e1;
+    background: #1f2227;
+}
+
+.soc-edit-actions {
+    display: flex;
+    grid-column: 1 / -1;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 760px) {
+    .soc-edit-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .soc-edit-form-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .soc-edit-fields.two-cols {
+        grid-template-columns: 1fr;
+    }
+
+    .soc-edit-actions .btn-primary,
+    .soc-edit-actions .btn-secondary {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+}
