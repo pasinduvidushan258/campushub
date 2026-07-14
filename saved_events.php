@@ -4,7 +4,7 @@ require_once 'includes/function.php';
 require_once 'config/database.php';
 
 if (!isLoggedIn()) {
-    header("Location: login.php?redirect=" . urlencode('/campushub/saved_events.php'));
+    header("Location: login.php?redirect=" . urlencode(app_url('saved_events.php')));
     exit;
 }
 

@@ -4,6 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once __DIR__ . '/../config/app.php';
+
 // Determine the current active mode — defaults to 'user' if not set in session
 $active_mode = $_SESSION['active_mode'] ?? 'user';
 ?>
@@ -27,7 +29,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
     <link rel="stylesheet" href="assets/css/header-hamburger.css">
     <link rel="stylesheet" href="assets/css/header-dropdown.css">
     <link rel="stylesheet" href="assets/css/header-responsive.css">
-    <link rel="stylesheet" href="/campushub/assets/css/switch-loader.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(app_url('assets/css/switch-loader.css')); ?>">
     <?php if (!empty($extra_stylesheets) && is_array($extra_stylesheets)): ?>
         <?php foreach ($extra_stylesheets as $stylesheet): ?>
             <link rel="stylesheet" href="<?php echo htmlspecialchars($stylesheet); ?>">
@@ -109,7 +111,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                             $_SESSION['avatar_url'] = $db_avatar; 
                             
                             // Construct the HTML for the user's avatar image, ensuring it is styled as a circle and fits within the profile button
-                            $user_avatar_tag = '<img src="/campushub/' . htmlspecialchars($db_avatar) . '" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">';
+                            $user_avatar_tag = '<img src="' . htmlspecialchars(app_url($db_avatar)) . '" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">';
                         }
                     }
 
@@ -125,7 +127,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                         $active_soc_logo = trim((string) ($active_soc_data['logo_path'] ?? ''));
 
                         if ($active_soc_logo !== '' && file_exists('assets/images/uploads/' . $active_soc_logo)) {
-                            $society_avatar_tag = '<img src="/campushub/assets/images/uploads/' . htmlspecialchars($active_soc_logo) . '" alt="Society" class="avatar-thumb">';
+                            $society_avatar_tag = '<img src="' . htmlspecialchars(app_url('assets/images/uploads/' . $active_soc_logo)) . '" alt="Society" class="avatar-thumb">';
                         }
                     }
 
@@ -159,7 +161,7 @@ $active_mode = $_SESSION['active_mode'] ?? 'user';
                         $build_society_avatar = function ($soc) {
                             $logo = trim((string) ($soc['logo_path'] ?? ''));
                             if ($logo !== '' && file_exists('assets/images/uploads/' . $logo)) {
-                                return '<img src="/campushub/assets/images/uploads/' . htmlspecialchars($logo) . '" alt="Society" class="avatar-thumb">';
+                                return '<img src="' . htmlspecialchars(app_url('assets/images/uploads/' . $logo)) . '" alt="Society" class="avatar-thumb">';
                             }
                             return '<i class="fas fa-users"></i>';
                         };

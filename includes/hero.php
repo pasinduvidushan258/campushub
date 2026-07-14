@@ -65,7 +65,7 @@ try {
 
     <!-- Left Side: Description and Buttons -->
     <div class="hero-left">
-        <h1 class="hero-title">Experience Campus Life Like Never Beforeaaaa</h1>
+        <h1 class="hero-title">Experience Campus Life Like Never Before</h1>
         <p class="hero-subtitle">
             CampusHub is your ultimate platform to discover exciting events, join amazing student societies, and stay updated with the latest university notices. All in one place!
         </p>

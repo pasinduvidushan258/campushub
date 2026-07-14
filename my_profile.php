@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once 'config/database.php';
+require_once 'config/app.php';
 require_once 'includes/function.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -36,8 +37,8 @@ $db_cover = $user_data['cover_url'] ?? '';
 $has_avatar = !empty($db_avatar) && $db_avatar !== 'assets/images/default_avatar.png';
 $has_cover = !empty($db_cover) && $db_cover !== 'assets/images/default_cover.png';
 
-$avatar_url = $has_avatar ? '/campushub/' . htmlspecialchars($db_avatar) : '';
-$cover_url = $has_cover ? '/campushub/' . htmlspecialchars($db_cover) : '';
+$avatar_url = $has_avatar ? app_url($db_avatar) : '';
+$cover_url = $has_cover ? app_url($db_cover) : '';
 
 $saved_events_preview = [];
 if (isset($pdo)) {

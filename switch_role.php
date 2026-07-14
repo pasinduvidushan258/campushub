@@ -3,6 +3,7 @@
 ob_start();
 session_start();
 require 'config/database.php';
+require_once 'config/app.php';
 
 ob_clean(); // Clear any unnecessary output
 header('Content-Type: application/json');
@@ -36,7 +37,7 @@ if ($type === 'society') {
 }
 
 // Always redirect to the home page
-$home_page_url = '/campushub/index.php'; 
+$home_page_url = app_url('index.php'); 
 
 echo json_encode(['success' => true, 'redirect_url' => $home_page_url]);
 exit();

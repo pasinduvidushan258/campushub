@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'config/database.php';
+require_once 'config/app.php';
 
 // PHPMailer classes
 use PHPMailer\PHPMailer\PHPMailer;
@@ -50,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if ($stmt->execute([$_SESSION['user_id'], $name, $desc, $email1, $email2, $verify_token])) {
             
-            $verification_link = "http://localhost/campusHub/verify_society.php?token=" . $verify_token;
+            $verification_link = app_base_url() . '/verify_society.php?token=' . urlencode($verify_token);
 
             // =========================================================
             // send verification emails to both provided email addresses using PHPMailer

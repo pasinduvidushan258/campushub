@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once 'config/database.php';
+require_once 'config/app.php';
 require_once 'includes/function.php';
 
 if (!isLoggedIn()) {
@@ -314,7 +315,7 @@ include 'includes/header.php';
                     <?php foreach ($followers as $f): ?>
                         <?php
                             $favatar = !empty($f['avatar_url']) && $f['avatar_url'] !== 'assets/images/default_avatar.png'
-                                ? '/campushub/' . htmlspecialchars($f['avatar_url']) : '';
+                                ? app_url($f['avatar_url']) : '';
                         ?>
                         <article class="dashboard-follower-card">
                             <?php if ($favatar): ?>
